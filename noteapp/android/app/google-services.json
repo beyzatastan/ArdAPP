@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "357946440833",
+    "project_id": "ardapp-4bf3a",
+    "storage_bucket": "ardapp-4bf3a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:357946440833:android:fa6d432499f949bbc4e180",
+        "android_client_info": {
+          "package_name": "com.ArdApp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-x29GD_gbpsrksQm9TI2k32xsP6NHmxw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:357946440833:android:2b18577b212cc30bc4e180",
+        "android_client_info": {
+          "package_name": "com.Noteapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-x29GD_gbpsrksQm9TI2k32xsP6NHmxw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
