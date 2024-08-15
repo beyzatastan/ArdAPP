@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
@@ -10,6 +12,11 @@ class Addscreen extends StatefulWidget {
 }
 
 class _AddscreenState extends State<Addscreen> {
+
+  final TextEditingController titleCont = TextEditingController();
+  final TextEditingController descCont = TextEditingController();
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +35,9 @@ class _AddscreenState extends State<Addscreen> {
             padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
             child: Column(
               children: [
-                 TextField(decoration: InputDecoration(
+                 TextField(
+                  controller: titleCont,
+                  decoration: InputDecoration(
                          fillColor: Colors.white,
                          filled: true,
                          hintText: "Note Title",
@@ -44,6 +53,7 @@ class _AddscreenState extends State<Addscreen> {
                       ),
                       const SizedBox(height: 40,),
                        TextFormField(
+                        controller: descCont,
                         keyboardType: TextInputType.multiline,
                         maxLines: null,
                         decoration: InputDecoration(
@@ -88,4 +98,37 @@ class _AddscreenState extends State<Addscreen> {
       ),
     );
   }
+
+  Future<void> _addNote() async {
+  if (titleCont.text.isNotEmpty && descCont.text.isNotEmpty) {
+    try {
+      final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(currentUserId)
+          .get();
+      String userName = userDoc['name'] ?? 'Unknown';
+
+     
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(currentUserId)
+          .collection('Notes')
+          .add({
+        "userName": userName,
+        "userId": userDoc["id"] ?? "",
+        "noteTitle": titleCont.text.trim(),
+        "noteDescription": descCont.text.trim()
+      });
+
+      titleCont.clear();
+      descCont.clear();
+      
+    } catch (e) {
+      print("Error sending message: $e");
+    }
+  }
+
+ }
 }
