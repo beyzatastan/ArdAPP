@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
@@ -16,6 +18,7 @@ class Notesscreen extends StatefulWidget {
 }
 
 class _NotesscreenState extends State<Notesscreen> {
+
   final List<Map<String, String>> items = [
     {
       "title": "Lemon Cake & Blueberry",
@@ -26,6 +29,10 @@ class _NotesscreenState extends State<Notesscreen> {
     {"title": "Item 3", "description": "Description for Item 3"},
     {"title": "Item 4", "description": "Description for Item 4"},
   ];
+  late final Stream<QuerySnapshot> _notesStream ;
+  final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+   
+
 
   TextEditingController searchController = TextEditingController();
   List<Map<String, String>> filteredItems = [];
@@ -33,6 +40,12 @@ class _NotesscreenState extends State<Notesscreen> {
   @override
   void initState() {
     super.initState();
+      _notesStream = FirebaseFirestore.instance
+      .collection('Users')
+      .doc(currentUserId)
+      .collection('Notes')
+      .orderBy('time')
+      .snapshots();
     filteredItems = items;
   }
 
@@ -68,15 +81,26 @@ class _NotesscreenState extends State<Notesscreen> {
               padding: const EdgeInsets.fromLTRB(60, 10, 2, 5),
               child: TextField(
                 decoration: InputDecoration(
-                    hintText: "Search...",
                     fillColor: Colors.white,
                     filled: true,
-                    contentPadding: const EdgeInsets.fromLTRB(15, 10, 15, 2),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: HexColor(buttonBackground), width: 1)),
+                    hintText: "Search for notes...",
+                    enabled: true,
+                    contentPadding: const EdgeInsets.only(left: 15, bottom: 8),
                     focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: HexColor(noteColor)))),
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: HexColor(noteColor),
+                        width: 1.5,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Colors.grey.withOpacity(0.5),
+                        width: 1,
+                      ),
+                    ),
+                  ),
                 onChanged: (value) {
                   filterSearch(value);
                 },

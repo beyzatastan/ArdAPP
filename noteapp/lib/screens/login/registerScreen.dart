@@ -65,11 +65,11 @@ class _RegisterscreenState extends State<Registerscreen> {
                               hintStyle: TextStyle(color: HexColor(noteColor)),
                               enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: HexColor(buttonBackground),
+                                      color: HexColor(noteColor),
                                       width: 1)),
                               focusedBorder: OutlineInputBorder(
                                   borderSide:
-                                      BorderSide(color: HexColor(noteColor)))),
+                                      BorderSide(color: HexColor(buttonBackground)))),
                         ),
                         const SizedBox(height: 20),
                         TextFormField(
@@ -81,11 +81,11 @@ class _RegisterscreenState extends State<Registerscreen> {
                               hintStyle: TextStyle(color: HexColor(noteColor)),
                               enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: HexColor(buttonBackground),
+                                      color: HexColor(noteColor),
                                       width: 1)),
                               focusedBorder: OutlineInputBorder(
                                   borderSide:
-                                      BorderSide(color: HexColor(noteColor)))),
+                                      BorderSide(color: HexColor(buttonBackground)))),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Email cannot be empty';
@@ -106,11 +106,11 @@ class _RegisterscreenState extends State<Registerscreen> {
                               hintStyle: TextStyle(color: HexColor(noteColor)),
                               enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: HexColor(buttonBackground),
+                                      color: HexColor(noteColor),
                                       width: 1)),
                               focusedBorder: OutlineInputBorder(
                                   borderSide:
-                                      BorderSide(color: HexColor(noteColor)))),
+                                      BorderSide(color: HexColor(buttonBackground)))),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Password cannot be empty';
@@ -131,11 +131,11 @@ class _RegisterscreenState extends State<Registerscreen> {
                               hintStyle: TextStyle(color: HexColor(noteColor)),
                               enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: HexColor(buttonBackground),
+                                      color: HexColor(noteColor),
                                       width: 1)),
                               focusedBorder: OutlineInputBorder(
                                   borderSide:
-                                      BorderSide(color: HexColor(noteColor)))),
+                                      BorderSide(color: HexColor(buttonBackground)))),
                           validator: (value) {
                             if (value != passwordCont.text) {
                               return 'Passwords do not match';
@@ -209,15 +209,39 @@ class _RegisterscreenState extends State<Registerscreen> {
       passwordCont.text,
       nameCont.text,
     );
+
+    // Navigate to Optionscreen after successful registration
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
         builder: (context) => const Optionscreen(),
       ),
       (Route<dynamic> route) => false,
     );
-
   } on FirebaseAuthException catch (e) {
-    print('Unexpected error: ${e.toString()}');
+    String errorMessage;
+    switch (e.code) {
+      case 'email-already-in-use':
+        errorMessage = 'An account already exists for that email. Please use a different email or try logging in.';
+        break;
+      case 'weak-password':
+        errorMessage = 'The password provided is too weak. Please choose a stronger password.';
+        break;
+      case 'invalid-email':
+        errorMessage = 'The email address is badly formatted.';
+        break;
+      default:
+        errorMessage = 'An unexpected error occurred. Please try again.';
     }
+    print('FirebaseAuthException: $errorMessage');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(errorMessage)),
+    );
+  } catch (e) {
+    print('Unexpected error: ${e.toString()}');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('An unexpected error occurred. Please try again.')),
+    );
   }
+}
+
 }

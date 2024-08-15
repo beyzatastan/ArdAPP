@@ -1,3 +1,5 @@
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -18,7 +20,7 @@ class _ChatscreenState extends State<Chatscreen> {
 
   // Chat & Auth Services
   final ChatServices _chatServices = ChatServices();
-
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,6 +79,8 @@ class _ChatscreenState extends State<Chatscreen> {
             }
             
             var convos = snapshot.data ?? [];
+            String currentUserId = _firebaseAuth.currentUser!.uid;
+            convos = convos.where((item) => item["id"] != currentUserId).toList();
 
             return ListView.builder(
               itemCount: convos.length,
@@ -108,7 +112,8 @@ class _ChatscreenState extends State<Chatscreen> {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                             builder: (context) => Convosscreen(
-                                  name: item["name"] ?? "",
+                                  receiverName: item["name"] ?? "",
+                                  receiverId:item["id"] ?? ""
                                  
                                 )),
                       );
