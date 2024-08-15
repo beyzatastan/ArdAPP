@@ -73,6 +73,7 @@ class _AddscreenState extends State<Addscreen> {
                       const SizedBox(height: 60,),
                       ElevatedButton(
                         onPressed: () {
+                          _addNote();
                           //yığını da temizleyip gönderiyorum
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(builder: (context) => const Notesscreen()),

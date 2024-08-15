@@ -1,4 +1,5 @@
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -86,13 +87,14 @@ class _ChatscreenState extends State<Chatscreen> {
               itemCount: convos.length,
               itemBuilder: (context, index) {
                 final item = convos[index];
+               // final itemId = item.id;
                 return Slidable(
                   key: Key(item["name"] ?? ""),
                   endActionPane:
                       ActionPane(motion: const DrawerMotion(), children: [
                     SlidableAction(
                       onPressed: (context) {
-                        //silme
+                      //deleteChat(itemId);
                       },
                       backgroundColor: Colors.red,
                       icon: Icons.delete_outline,
@@ -126,5 +128,9 @@ class _ChatscreenState extends State<Chatscreen> {
         ),
       ),
     );
+  }
+  Future deleteChat(String chatId) async {
+    await FirebaseFirestore.instance.collection("Users").doc()
+    .collection("Messages").doc(chatId).delete();
   }
 }

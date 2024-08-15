@@ -23,13 +23,14 @@ class _DisplayMessageState extends State<DisplayMessage> {
   void initState() {
     super.initState();
     final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-    
-     _messageStream = FirebaseFirestore.instance
-      .collection('Users')
-      .doc(currentUserId)
-      .collection('Messages')
-      .orderBy('time')
-      .snapshots();
+   
+    _messageStream = FirebaseFirestore.instance
+  .collection('Users')
+  .doc(currentUserId)
+  .collection('Messages')
+  .orderBy('time') 
+  .snapshots();
+
   }
   @override
   Widget build(BuildContext context) {
@@ -43,11 +44,22 @@ class _DisplayMessageState extends State<DisplayMessage> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        
+        // Filter messages
+        final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+        final filteredMessages = snapshot.data!.docs.where((doc) {
+          final receiverId = doc['receiverId'];
+          final userId = doc['userId'];
+          return receiverId == widget.receiverId || userId == currentUserId;
+        }).toList();
+
+        // Show no messages available if no matching messages are found
+        if (filteredMessages.isEmpty) {
           return const Center(child: Text("No messages available."));
         }
-        //ekranın son mesaja açılması 
-         WidgetsBinding.instance.addPostFrameCallback((_) {
+
+        // Scroll to the bottom on new messages
+        WidgetsBinding.instance.addPostFrameCallback((_) {
           _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
         });
 
@@ -56,9 +68,6 @@ class _DisplayMessageState extends State<DisplayMessage> {
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (context, index) {
             QueryDocumentSnapshot qds = snapshot.data!.docs[index];
-            if(widget.receiverId == qds["receiverId"]){
-
-            }
             Timestamp time = qds["time"];
             DateTime dateTime = time.toDate();
             bool isNotCurrentUser = widget.receivername == qds["receiverName"];

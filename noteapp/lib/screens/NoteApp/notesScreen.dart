@@ -18,46 +18,18 @@ class Notesscreen extends StatefulWidget {
 }
 
 class _NotesscreenState extends State<Notesscreen> {
-
-  final List<Map<String, String>> items = [
-    {
-      "title": "Lemon Cake & Blueberry",
-      "description":
-          "Sunshine-sweet lemon blueberry layer cake dotted with juicy berries and topped with lush cream cheese…"
-    },
-    {"title": "Item 2", "description": "Description for Item 2"},
-    {"title": "Item 3", "description": "Description for Item 3"},
-    {"title": "Item 4", "description": "Description for Item 4"},
-  ];
-  late final Stream<QuerySnapshot> _notesStream ;
+  late final Stream<QuerySnapshot> _notesStream;
   final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-   
-
-
   TextEditingController searchController = TextEditingController();
-  List<Map<String, String>> filteredItems = [];
 
   @override
   void initState() {
     super.initState();
-      _notesStream = FirebaseFirestore.instance
-      .collection('Users')
-      .doc(currentUserId)
-      .collection('Notes')
-      .orderBy('time')
-      .snapshots();
-    filteredItems = items;
-  }
-
-  void filterSearch(String query) {
-    setState(() {
-      filteredItems = items
-          .where((item) => item["title"]!
-              .toLowerCase()
-              .toUpperCase()
-              .contains(query.toLowerCase().toUpperCase()))
-          .toList();
-    });
+    _notesStream = FirebaseFirestore.instance
+        .collection('Users')
+        .doc(currentUserId)
+        .collection('Notes')
+        .snapshots();
   }
 
   @override
@@ -80,29 +52,29 @@ class _NotesscreenState extends State<Notesscreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(60, 10, 2, 5),
               child: TextField(
+                controller: searchController,
                 decoration: InputDecoration(
-                    fillColor: Colors.white,
-                    filled: true,
-                    hintText: "Search for notes...",
-                    enabled: true,
-                    contentPadding: const EdgeInsets.only(left: 15, bottom: 8),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: HexColor(noteColor),
-                        width: 1.5,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: Colors.grey.withOpacity(0.5),
-                        width: 1,
-                      ),
+                  fillColor: Colors.white,
+                  filled: true,
+                  hintText: "Search for notes...",
+                  contentPadding: const EdgeInsets.only(left: 15, bottom: 8),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                      color: HexColor(noteColor),
+                      width: 1.5,
                     ),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                      color: Colors.grey.withOpacity(0.5),
+                      width: 1,
+                    ),
+                  ),
+                ),
                 onChanged: (value) {
-                  filterSearch(value);
+                  setState(() {});
                 },
               ),
             ),
@@ -116,7 +88,7 @@ class _NotesscreenState extends State<Notesscreen> {
                     builder: (context) => const Profilescreen()));
               },
             ),
-          )
+          ),
         ],
       ),
       body: Padding(
@@ -124,61 +96,96 @@ class _NotesscreenState extends State<Notesscreen> {
         child: Column(
           children: [
             Expanded(
-              child: ListView.builder(
-                itemCount: filteredItems.length,
-                itemBuilder: (context, index) {
-                  final item = filteredItems[index];
-                  return Slidable(
-                    key: Key(item["title"] ?? ""),
-                    endActionPane:
-                        ActionPane(motion: const DrawerMotion(), children: [
-                      SlidableAction(
-                        onPressed: (context) {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                                builder: (context) => Editscreen(
-                                      notetitle: item["title"] ?? "",
-                                      notedesc: item["description"] ?? "",
-                                    )),
-                          );
-                        },
-                        backgroundColor: HexColor(editcolor),
-                        foregroundColor: Colors.white,
-                        icon: Icons.mode_edit_outline_outlined,
-                      ),
-                      SlidableAction(
-                        onPressed: (context) {},
-                        backgroundColor: Colors.red,
-                        icon: Icons.delete_outline,
-                      )
-                    ]),
-                    child: ListTile(
-                      title: Text(item["title"] ?? "",
-                          style: const TextStyle(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: _notesStream,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Error: ${snapshot.error}"));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text("No notes available."));
+                  }
+
+                  // Filter notes based on search query
+                  final filteredItems = snapshot.data!.docs.where((doc) {
+                    final noteTitle = doc['noteTitle']?.toString() ?? '';
+                    return noteTitle
+                        .toLowerCase()
+                        .contains(searchController.text.toLowerCase());
+                  }).toList();
+
+                  return ListView.builder(
+                    itemCount: filteredItems.length,
+                    itemBuilder: (context, index) {
+                      final item = filteredItems[index];
+                      final itemId = item.id;
+                      return Slidable(
+                        key: Key(item["noteTitle"] ?? ""),
+                        endActionPane: ActionPane(
+                          motion: const DrawerMotion(),
+                          children: [
+                            SlidableAction(
+                              onPressed: (context) {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => Editscreen(
+                                      notetitle: item["noteTitle"] ?? "",
+                                      notedesc: item["noteDescription"] ?? "",
+                                    ),
+                                  ),
+                                );
+                              },
+                              backgroundColor: HexColor(editcolor),
+                              foregroundColor: Colors.white,
+                              icon: Icons.mode_edit_outline_outlined,
+                            ),
+                            SlidableAction(
+                              onPressed: (context) {
+                                deleteNote(itemId);
+                              },
+                              backgroundColor: Colors.red,
+                              icon: Icons.delete_outline,
+                            ),
+                          ],
+                        ),
+                        child: ListTile(
+                          title: Text(
+                            item["noteTitle"] ?? "",
+                            style: const TextStyle(
                               color: Colors.black,
                               fontFamily: "Inter",
                               fontSize: 16,
-                              fontWeight: FontWeight.bold)),
-                      subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 20),
-                          child: Text(
-                            item["description"] ?? "",
-                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 20),
+                            child: Text(
+                              item["noteDescription"] ?? "",
+                              style: TextStyle(
                                 fontFamily: "Inter",
-                                color: HexColor(noteColor)),
-                          )),
-                      contentPadding: const EdgeInsets.all(14),
-                      tileColor: HexColor(backgroundColor),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (context) => Detailsscreen(
-                                    tittle: item["title"] ?? "",
-                                    description: item["description"] ?? "",
-                                  )),
-                        );
-                      },
-                    ),
+                                color: HexColor(noteColor),
+                              ),
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.all(14),
+                          tileColor: HexColor(backgroundColor),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => Detailsscreen(
+                                  tittle: item["noteTitle"] ?? "",
+                                  description: item["noteDescription"] ?? "",
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -186,29 +193,38 @@ class _NotesscreenState extends State<Notesscreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 40),
               child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (context) => const Addscreen()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: HexColor(buttoncolor),
-                      foregroundColor: HexColor(buttonBackground),
-                      minimumSize: const Size(80, 50),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5))),
-                  child: const Text(
-                    "+ Add Note",
-                    style: TextStyle(
-                        fontFamily: "Inter",
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold),
-                  )),
-            )
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const Addscreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HexColor(buttoncolor),
+                  foregroundColor: HexColor(buttonBackground),
+                  minimumSize: const Size(80, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+                child: const Text(
+                  "+ Add Note",
+                  style: TextStyle(
+                    fontFamily: "Inter",
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+  Future deleteNote(String noteId) async {
+    await FirebaseFirestore.instance.collection("Users").doc(currentUserId)
+    .collection("Notes").doc(noteId).delete();
   }
 }
