@@ -16,10 +16,8 @@ class Searchscreen extends StatefulWidget {
 class _SearchscreenState extends State<Searchscreen> {
   TextEditingController searchController = TextEditingController();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-   List<Map<String, dynamic>> filteredConvos = [];
+  List<Map<String, dynamic>> filteredConvos = [];
   List<Map<String, dynamic>> allConvos = [];
-  
-
 
   @override
   void initState() {
@@ -27,7 +25,8 @@ class _SearchscreenState extends State<Searchscreen> {
     widget.usersStream.listen((convos) {
       String currentUserId = _firebaseAuth.currentUser!.uid;
       setState(() {
-        allConvos = convos.where((item) => item["id"] != currentUserId).toList();
+        allConvos =
+            convos.where((item) => item["id"] != currentUserId).toList();
         filteredConvos = allConvos;
       });
     });
@@ -63,26 +62,26 @@ class _SearchscreenState extends State<Searchscreen> {
               padding: const EdgeInsets.fromLTRB(50, 8, 18, 10),
               child: TextField(
                 decoration: InputDecoration(
-                    fillColor: Colors.white,
-                    filled: true,
-                    hintText: "Search for users...",
-                    enabled: true,
-                    contentPadding: const EdgeInsets.only(left: 15, bottom: 8),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: HexColor(noteColor),
-                        width: 1.5,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: Colors.grey.withOpacity(0.5),
-                        width: 1,
-                      ),
+                  fillColor: Colors.white,
+                  filled: true,
+                  hintText: "Search for users...",
+                  enabled: true,
+                  contentPadding: const EdgeInsets.only(left: 15, bottom: 8),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                      color: HexColor(noteColor),
+                      width: 1.5,
                     ),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                      color: Colors.grey.withOpacity(0.5),
+                      width: 1,
+                    ),
+                  ),
+                ),
                 onChanged: (value) {
                   filterSearch(value);
                 },
