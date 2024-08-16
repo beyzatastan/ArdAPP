@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -43,7 +42,7 @@ class UserTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-          padding: const EdgeInsets.symmetric(vertical: 25,horizontal: 20),
+          padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
           child: Row(
             children: [
               Expanded(
@@ -64,8 +63,5 @@ class UserTile extends StatelessWidget {
     );
   }
 
-   
-  Future deleteChat(String chatId) async {
-    
-  }
+  Future deleteChat(String chatId) async {}
 }

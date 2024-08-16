@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+/*import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -129,7 +129,8 @@ class _ProfilescreenState extends State<Profilescreen> {
           .doc(widget.userId)
           .update({"name": nameCont.text, "email": emailCont.text});
 
-      Navigator.of(context).pushAndRemoveUntil(
+ await FirebaseAuth.instance.currentUser!.verifyBeforeUpdateEmail(emailCont.text);   
+    Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const Notesscreen()),
         (Route<dynamic> route) => false,
       );
@@ -142,4 +143,4 @@ class _ProfilescreenState extends State<Profilescreen> {
       );
     }
   }
-}
+} */

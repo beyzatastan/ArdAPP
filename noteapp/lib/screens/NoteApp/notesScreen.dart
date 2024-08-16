@@ -9,6 +9,8 @@ import 'package:noteapp/screens/NoteApp/editScreen.dart';
 import 'package:noteapp/screens/NoteApp/profileScreen.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
+import 'package:noteapp/services/auth.dart';
+import 'package:noteapp/services/chats/chat_services.dart';
 
 class Notesscreen extends StatefulWidget {
   const Notesscreen({super.key});
@@ -80,15 +82,8 @@ class _NotesscreenState extends State<Notesscreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(right: 14),
-            child: IconButton(
-              icon: const Icon(Icons.person_3),
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => Profilescreen(userId:currentUserId)));
-              },
-            ),
-          ),
+            padding: const EdgeInsets.only(right: 14,left: 10),
+          )
         ],
       ),
       body: Padding(
@@ -116,7 +111,6 @@ class _NotesscreenState extends State<Notesscreen> {
                         .toLowerCase()
                         .contains(searchController.text.toLowerCase());
                   }).toList();
-
                   return ListView.builder(
                     itemCount: filteredItems.length,
                     itemBuilder: (context, index) {
@@ -124,6 +118,17 @@ class _NotesscreenState extends State<Notesscreen> {
                       final itemId = item.id;
                       return Slidable(
                         key: Key(item["noteTitle"] ?? ""),
+                        startActionPane:
+                            ActionPane(motion: const DrawerMotion(), children: [
+                          SlidableAction(
+                            onPressed: (context) {
+                              _displayBottomSheet(context);
+                            },
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            icon: Icons.share_sharp,
+                          ),
+                        ]),
                         endActionPane: ActionPane(
                           motion: const DrawerMotion(),
                           children: [
@@ -225,6 +230,14 @@ class _NotesscreenState extends State<Notesscreen> {
     );
   }
 
+  Future<void> signOut() async {
+    try {
+      await Auth().signOut();
+    } on FirebaseAuthException catch (e) {
+      throw e.code;
+    }
+  }
+
   Future deleteNote(String noteId) async {
     await FirebaseFirestore.instance
         .collection("Notes")
@@ -232,5 +245,84 @@ class _NotesscreenState extends State<Notesscreen> {
         .collection("Notes")
         .doc(noteId)
         .delete();
-  }
+
+  }Future<void> _displayBottomSheet(BuildContext context) {
+  return showModalBottomSheet(
+    context: context,
+    backgroundColor: HexColor(backgroundColor),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+    ),
+    builder: (context) {
+      return Container(
+        height: 300,
+        width: 400,
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            Text(
+              "Share your note with:",
+              style: TextStyle(
+                fontFamily: "Inter",
+                color: HexColor(noteColor),
+                fontSize: 16,
+              ),
+            ),
+            Expanded(
+              child: StreamBuilder(
+                stream: ChatServices().getUsersStream(), // Fetch user data from Firestore
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Error: ${snapshot.error}"));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text("No users available."));
+                  }
+
+                  final users = snapshot.data!;
+
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: users.map<Widget>((user) {
+                        return Container(
+                          width: 100,
+                          child: Column(
+                     //snapshot.data!.map<Widget>((userData)=>_buildUserListItem(userData,context)).toList(),
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: Colors.black,
+                                backgroundImage: NetworkImage(user["profileImage"] ?? ""),
+                                radius: 30,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                user["name"],
+                                style: const TextStyle(
+                                  fontFamily: "Inter",
+                                  fontSize: 15,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              Divider(thickness: 2,)
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 }

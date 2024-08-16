@@ -69,9 +69,30 @@ class _ChatscreenState extends State<Chatscreen> {
           )
         ],
       ),
-      body: _buildUserList(),
-  );
-}
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Expanded(child: _buildUserList()),
+            ],
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton(onPressed: () {}, icon: Icon(Icons.chat_bubble_sharp)),
+                IconButton(onPressed: () {}, icon: Icon(Icons.chat_bubble_sharp)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future deleteChat(String chatId) async {
+  }
 
 //build a list of users except current user
 Widget _buildUserList(){
