@@ -26,9 +26,9 @@ class _NotesscreenState extends State<Notesscreen> {
   void initState() {
     super.initState();
     _notesStream = FirebaseFirestore.instance
-        .collection('Users')
-        .doc(currentUserId)
         .collection('Notes')
+        .doc(currentUserId)
+        .collection("Notes")
         .snapshots();
   }
 
@@ -85,7 +85,7 @@ class _NotesscreenState extends State<Notesscreen> {
               icon: const Icon(Icons.person_3),
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const Profilescreen()));
+                    builder: (context) => Profilescreen(userId:currentUserId)));
               },
             ),
           ),
@@ -134,6 +134,7 @@ class _NotesscreenState extends State<Notesscreen> {
                                     builder: (context) => Editscreen(
                                       notetitle: item["noteTitle"] ?? "",
                                       notedesc: item["noteDescription"] ?? "",
+                                      noteId: item.id,
                                     ),
                                   ),
                                 );
@@ -223,8 +224,13 @@ class _NotesscreenState extends State<Notesscreen> {
       ),
     );
   }
+
   Future deleteNote(String noteId) async {
-    await FirebaseFirestore.instance.collection("Users").doc(currentUserId)
-    .collection("Notes").doc(noteId).delete();
+    await FirebaseFirestore.instance
+        .collection("Notes")
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection("Notes")
+        .doc(noteId)
+        .delete();
   }
 }

@@ -204,7 +204,7 @@ class _RegisterscreenState extends State<Registerscreen> {
 
   Future<void> createUser() async {
   try {
-    await Auth().registerWithEmailAndPassword(
+    await Auth().signUpWitEmailandPassword(
       emailCont.text,
       passwordCont.text,
       nameCont.text,

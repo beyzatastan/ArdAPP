@@ -1,10 +1,8 @@
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
+import 'package:noteapp/extensions/user_tile.dart';
 import 'package:noteapp/screens/ChatApp/convosScreen.dart';
 import 'package:noteapp/screens/ChatApp/searchScreen.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
@@ -22,6 +20,10 @@ class _ChatscreenState extends State<Chatscreen> {
   // Chat & Auth Services
   final ChatServices _chatServices = ChatServices();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+  User? getCurrentUser (){
+    return _firebaseAuth.currentUser;
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,70 +69,34 @@ class _ChatscreenState extends State<Chatscreen> {
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(top: 9),
-        child: StreamBuilder(
-          stream: _chatServices.getUsersStream(),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
-            }
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            
-            var convos = snapshot.data ?? [];
-            String currentUserId = _firebaseAuth.currentUser!.uid;
-            convos = convos.where((item) => item["id"] != currentUserId).toList();
+      body: _buildUserList(),
+  );
+}
 
-            return ListView.builder(
-              itemCount: convos.length,
-              itemBuilder: (context, index) {
-                final item = convos[index];
-               // final itemId = item.id;
-                return Slidable(
-                  key: Key(item["name"] ?? ""),
-                  endActionPane:
-                      ActionPane(motion: const DrawerMotion(), children: [
-                    SlidableAction(
-                      onPressed: (context) {
-                      //deleteChat(itemId);
-                      },
-                      backgroundColor: Colors.red,
-                      icon: Icons.delete_outline,
-                    )
-                  ]),
-                  child: ListTile(
-                    title: Text(item["name"] ?? "",
-                        style: const TextStyle(
-                            color: Colors.black,
-                            fontFamily: "Inter",
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold)),
-                  
-                    contentPadding: const EdgeInsets.all(14),
-                    tileColor: HexColor(backgroundColor),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) => Convosscreen(
-                                  receiverName: item["name"] ?? "",
-                                  receiverId:item["id"] ?? ""
-                                 
-                                )),
-                      );
-                    },
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ),
+//build a list of users except current user
+Widget _buildUserList(){
+  return StreamBuilder(stream: _chatServices.getUsersStream(), builder:(context, snapshot) {
+    if(snapshot.hasError){
+      return Text("error");
+    }if(snapshot.connectionState == ConnectionState.waiting){
+      return const Center(child: CircularProgressIndicator());
+    }
+    return ListView(
+      children: snapshot.data!.map<Widget>((userData)=>_buildUserListItem(userData,context)).toList(),
     );
-  }
-  Future deleteChat(String chatId) async {
-    await FirebaseFirestore.instance.collection("Users").doc()
-    .collection("Messages").doc(chatId).delete();
-  }
+  },);
+}
+Widget _buildUserListItem(Map<String,dynamic> userData,BuildContext context){
+ if(userData["email"] != getCurrentUser()!.email){
+   //display all users except
+  return UserTile(text: userData["name"],
+  onTap: (){
+    Navigator.push(context, MaterialPageRoute(builder:(context) => Convosscreen(receiverName: userData["name"] , receiverId: userData["id"]),));
+  },);
+ }
+ else{
+  return Container();
+ }
+}
+
 }

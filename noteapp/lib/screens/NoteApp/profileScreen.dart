@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -7,13 +8,16 @@ import 'package:noteapp/screens/login/loginScreen.dart';
 import 'package:noteapp/services/auth.dart';
 
 class Profilescreen extends StatefulWidget {
-  const Profilescreen({super.key});
+  const Profilescreen({super.key, required this.userId});
+  final String userId;
 
   @override
   State<Profilescreen> createState() => _ProfilescreenState();
 }
 
 class _ProfilescreenState extends State<Profilescreen> {
+  TextEditingController nameCont = TextEditingController();
+  TextEditingController emailCont = TextEditingController();
   String? errorMessage;
   @override
   Widget build(BuildContext context) {
@@ -36,10 +40,11 @@ class _ProfilescreenState extends State<Profilescreen> {
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
-             padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+            padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
             child: Column(
               children: [
                 TextField(
+                  controller: nameCont,
                   decoration: InputDecoration(
                       fillColor: Colors.white,
                       filled: true,
@@ -53,6 +58,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                 ),
                 const SizedBox(height: 16),
                 TextField(
+                  controller: emailCont,
                   decoration: InputDecoration(
                       fillColor: Colors.white,
                       filled: true,
@@ -65,38 +71,39 @@ class _ProfilescreenState extends State<Profilescreen> {
                           borderSide: BorderSide(color: HexColor(noteColor)))),
                 ),
                 const SizedBox(
-                      height: 15,
-                    ),
-                    ElevatedButton(
-                        onPressed: () {
-                          //yığını da temizleyip gönderiyorum
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => const Notesscreen()),
-                            (Route<dynamic> route) => false,
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: HexColor(buttonBackground),
-                            foregroundColor: HexColor(buttoncolor),
-                            minimumSize: const Size(327, 63),
-                            shape: RoundedRectangleBorder(
-                               borderRadius: BorderRadius.circular(5))),
-                        child: const Text(
-                          "Save",
-                          style: TextStyle(fontFamily: "Inter", fontSize: 20),
-                        )
-                        ),
-                        const SizedBox(height: 20,),
-                        TextButton(onPressed: (){
-                          signOut();
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => const Loginscreen()),
-                            (Route<dynamic> route) => false,
-                          );
-
-                        }, child: const Text("Sign Out",
-                        style: TextStyle(color: Colors.red,fontFamily: "Inter",fontSize: 15),)) 
-
+                  height: 15,
+                ),
+                ElevatedButton(
+                    onPressed: () {
+                      updateProfile();
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: HexColor(buttonBackground),
+                        foregroundColor: HexColor(buttoncolor),
+                        minimumSize: const Size(327, 63),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5))),
+                    child: const Text(
+                      "Save",
+                      style: TextStyle(fontFamily: "Inter", fontSize: 20),
+                    )),
+                const SizedBox(
+                  height: 20,
+                ),
+                TextButton(
+                    onPressed: () {
+                      signOut();
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                            builder: (context) => const Loginscreen()),
+                        (Route<dynamic> route) => false,
+                      );
+                    },
+                    child: const Text(
+                      "Sign Out",
+                      style: TextStyle(
+                          color: Colors.red, fontFamily: "Inter", fontSize: 15),
+                    ))
               ],
             ),
           ),
@@ -104,13 +111,35 @@ class _ProfilescreenState extends State<Profilescreen> {
       ),
     );
   }
-  Future <void> signOut()async{
-   try{
-    await Auth().signOut();
-   }on FirebaseAuthException catch(e){
-    setState(() {
-  errorMessage=e.message;    
-    });
-   }
+
+  Future<void> signOut() async {
+    try {
+      await Auth().signOut();
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        errorMessage = e.message;
+      });
+    }
+  }
+
+  Future<void> updateProfile() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(widget.userId)
+          .update({"name": nameCont.text, "email": emailCont.text});
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const Notesscreen()),
+        (Route<dynamic> route) => false,
+      );
+    } catch (e) {
+      print("Error updating profile: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Failed to update profile. Please try again."),
+        ),
+      );
+    }
   }
 }

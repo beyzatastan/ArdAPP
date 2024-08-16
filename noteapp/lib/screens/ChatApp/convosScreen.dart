@@ -1,8 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
+import 'package:noteapp/services/chats/chat_services.dart';
 import 'package:noteapp/services/chats/display_message.dart';
 
 class Convosscreen extends StatefulWidget {
@@ -16,6 +15,7 @@ class Convosscreen extends StatefulWidget {
 
 class _ConvosscreenState extends State<Convosscreen> {
   final TextEditingController messageCont = TextEditingController();
+  final ChatServices _chatServices = ChatServices();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,7 +81,7 @@ class _ConvosscreenState extends State<Convosscreen> {
                   },
                 )),
                 TextButton(
-                    onPressed: _sendMessage,
+                    onPressed: sendMessage,
                     child: Text(
                       "Send",
                       style: TextStyle(
@@ -98,49 +98,11 @@ class _ConvosscreenState extends State<Convosscreen> {
     );
   }
 
- Future<void> _sendMessage() async {
-  if (messageCont.text.isNotEmpty) {
-    try {
-      final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(currentUserId)
-          .get();
-      String userName = userDoc['name'] ?? 'Unknown';
-
-     
-      await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(currentUserId)
-          .collection('Messages')
-          .add({
-        "receiverName": widget.receiverName,
-        "receiverId": widget.receiverId,
-        "userName": userName,
-        "userId": userDoc["id"] ?? "",
-        "message": messageCont.text.trim(),
-        "time": DateTime.now(),
-      });
-
-      await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(widget.receiverId) 
-          .collection('Messages')
-          .add({
-        "receiverName": widget.receiverName,
-        "receiverId": widget.receiverId,
-        "userName": userName,
-        "userId": userDoc["id"] ?? "",
-        "message": messageCont.text.trim(),
-        "time": DateTime.now(),
-      });
-
+  void sendMessage()async{
+    if(messageCont.text.isNotEmpty){
+      await _chatServices.sendMessage(widget.receiverId,messageCont.text);
       messageCont.clear();
-    } catch (e) {
-      print("Error sending message: $e");
     }
-  }
 
- }
+  }
 }

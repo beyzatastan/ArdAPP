@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
+import 'package:noteapp/services/chats/chat_services.dart';
 
 class DisplayMessage extends StatefulWidget {
   const DisplayMessage({super.key, required this.receivername,
@@ -16,26 +17,15 @@ class DisplayMessage extends StatefulWidget {
 }
 class _DisplayMessageState extends State<DisplayMessage> {
 
-  late final Stream<QuerySnapshot> _messageStream ;
+final ChatServices _chatServices = ChatServices();
 
   final ScrollController _scrollController = ScrollController();
-  @override
-  void initState() {
-    super.initState();
-    final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-   
-    _messageStream = FirebaseFirestore.instance
-  .collection('Users')
-  .doc(currentUserId)
-  .collection('Messages')
-  .orderBy('time') 
-  .snapshots();
 
-  }
+  
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: _messageStream,
+      stream: _chatServices.getMessages(widget.receiverId, FirebaseAuth.instance.currentUser!.uid),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
            print(snapshot.error);
@@ -49,7 +39,7 @@ class _DisplayMessageState extends State<DisplayMessage> {
         final currentUserId = FirebaseAuth.instance.currentUser!.uid;
         final filteredMessages = snapshot.data!.docs.where((doc) {
           final receiverId = doc['receiverId'];
-          final userId = doc['userId'];
+          final userId = doc['senderId'];
           return receiverId == widget.receiverId || userId == currentUserId;
         }).toList();
 
@@ -68,10 +58,10 @@ class _DisplayMessageState extends State<DisplayMessage> {
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (context, index) {
             QueryDocumentSnapshot qds = snapshot.data!.docs[index];
-            Timestamp time = qds["time"];
+            Timestamp time = qds["timestamp"];
             DateTime dateTime = time.toDate();
-            bool isNotCurrentUser = widget.receivername == qds["receiverName"];
-            String messageReceiver = qds["receiverName"];
+            bool isNotCurrentUser = widget.receiverId == qds["receiverId"];
+            String messageReceiver = qds["receiverId"];
             String messageContent = qds["message"];
             
             return Padding(
@@ -79,7 +69,7 @@ class _DisplayMessageState extends State<DisplayMessage> {
               child: Align(
                alignment: isNotCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
                 child: Column(
-                  crossAxisAlignment: widget.receivername != messageReceiver
+                  crossAxisAlignment: widget.receiverId != messageReceiver
                       ? CrossAxisAlignment.start
                       : CrossAxisAlignment.end,
                   children: [
