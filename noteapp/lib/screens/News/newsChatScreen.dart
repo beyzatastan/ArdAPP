@@ -21,8 +21,7 @@ class _NotechatscreenState extends State<Newschatscreen> {
  final TextEditingController messageCont = TextEditingController();
   final ChatServices _chatServices = ChatServices();
 
-
-  @override
+ @override
   void initState() {
     super.initState();
     messageCont.text = "${widget.newsUrl}";
@@ -53,9 +52,7 @@ class _NotechatscreenState extends State<Newschatscreen> {
         children: [
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.75,
-            child: DisplayMessage(receivername: widget.receiverName,receiverId: widget.receiverId,
-            ),
-        
+            child: DisplayMessage(receivername: widget.receiverName,receiverId: widget.receiverId),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),

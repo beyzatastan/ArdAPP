@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/screens/login/loginScreen.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
@@ -19,8 +22,9 @@ class _RegisterscreenState extends State<Registerscreen> {
   final TextEditingController passwordCont = TextEditingController();
   final TextEditingController rePasswordCont = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-  String? errorMessage;
+   String? errorMessage;
+  File? _imageFile; // Seçilen resim dosyası
+  final ImagePicker _picker = ImagePicker(); // ImagePicker nesnesi
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +39,32 @@ class _RegisterscreenState extends State<Registerscreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Container(
+                  width: 130,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: HexColor(noteColor),
+                  ),
+                  child: _imageFile == null
+                      ? IconButton(
+                          onPressed: _pickImage,
+                          icon: Icon(
+                            Icons.add_a_photo,
+                            color: Colors.white,
+                            size: 40.0,
+                          ),
+                        )
+                      : ClipOval(
+                          child: Image.file(
+                            _imageFile!,
+                            fit: BoxFit.cover,
+                            width: 130,
+                            height: 130,
+                          ),
+                        ),
+                ),
+                SizedBox(height: 30,),
                   const Text(
                     "Register",
                     style: TextStyle(
@@ -164,7 +194,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                         style: TextStyle(fontFamily: "Inter", fontSize: 20),
                       )),
                   SizedBox(
-                    height: 340,
+                    height: 200,
                     child: Align(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -243,5 +273,13 @@ class _RegisterscreenState extends State<Registerscreen> {
     );
   }
 }
+Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
 
 }

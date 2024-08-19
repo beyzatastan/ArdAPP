@@ -4,6 +4,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/screens/ChatApp/chatScreen.dart';
 import 'package:noteapp/screens/NoteApp/notesScreen.dart';
+import 'package:noteapp/screens/NoteApp/profileScreen.dart';
 import 'package:noteapp/screens/login/loginScreen.dart';
 import 'package:noteapp/screens/News/newsScreen.dart';
 
@@ -118,9 +119,21 @@ class _OptionscreenState extends State<Optionscreen> {
                 const SizedBox(
                   height: 40,
                 ),
-                Row(
+                Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(context).push(MaterialPageRoute(builder:(context) => Profilescreen()));
+                        },
+                        child:  Text(
+                          "Edit Profile",
+                          style: TextStyle(
+                              color: HexColor(buttonBackground),
+                              fontFamily: "Inter",
+                              fontSize: 23),
+                        )),
+                         SizedBox(height: 5,),
                     TextButton(
                         onPressed: () {signOut();},
                         child: const Text(
@@ -128,8 +141,10 @@ class _OptionscreenState extends State<Optionscreen> {
                           style: TextStyle(
                               color: Colors.red,
                               fontFamily: "Inter",
-                              fontSize: 20),
-                        ))
+                              fontSize: 18),
+                        )),
+                       
+                        
                   ],
                 ),
               ],
