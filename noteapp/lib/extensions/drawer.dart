@@ -4,7 +4,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/extensions/user_tile.dart';
 import 'package:noteapp/screens/ChatApp/convosScreen.dart';
-import 'package:noteapp/services/chats/chat_services.dart';
+import 'package:noteapp/utils/services/chats/chat_services.dart';
 
 class CustomDrawer extends StatefulWidget {
   @override

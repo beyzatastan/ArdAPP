@@ -6,7 +6,7 @@ import 'package:noteapp/extensions/user_tile.dart';
 import 'package:noteapp/screens/ChatApp/convosScreen.dart';
 import 'package:noteapp/screens/ChatApp/searchScreen.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
-import 'package:noteapp/services/chats/chat_services.dart';
+import 'package:noteapp/utils/services/chats/chat_services.dart';
 
 class Chatscreen extends StatefulWidget {
   const Chatscreen({super.key});
@@ -69,25 +69,7 @@ class _ChatscreenState extends State<Chatscreen> {
           )
         ],
       ),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              Expanded(child: _buildUserList()),
-            ],
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                IconButton(onPressed: () {}, icon: Icon(Icons.chat_bubble_sharp)),
-                IconButton(onPressed: () {}, icon: Icon(Icons.chat_bubble_sharp)),
-              ],
-            ),
-          ),
-        ],
-      ),
+      body: _buildUserList()
     );
   }
 

@@ -4,7 +4,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/screens/login/loginScreen.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
-import 'package:noteapp/services/auth.dart';
+import 'package:noteapp/utils/auth.dart';
 
 class Registerscreen extends StatefulWidget {
   const Registerscreen({super.key});

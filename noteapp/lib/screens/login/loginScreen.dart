@@ -5,7 +5,7 @@ import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/screens/login/forgotPassword.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
 import 'package:noteapp/screens/login/registerScreen.dart';
-import 'package:noteapp/services/auth.dart';
+import 'package:noteapp/utils/auth.dart';
 
 class Loginscreen extends StatefulWidget {
   const Loginscreen({super.key});
