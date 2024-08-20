@@ -24,8 +24,10 @@ class _NewsscreenState extends State<Newsscreen> {
     return FirebaseAuth.instance.currentUser;
   }
 
+
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       backgroundColor: HexColor(backgroundColor),
       appBar: AppBar(
@@ -102,8 +104,14 @@ class _NewsscreenState extends State<Newsscreen> {
                       contentPadding: const EdgeInsets.all(14),
                       tileColor: HexColor(backgroundColor),
                       onTap: () {
-                        _launchURL(news.url!);
-                      },
+  if (news.url != null && news.url!.isNotEmpty) {
+    _launchURL(news.url!);
+  } else {
+    // URL geçersizse veya boşsa ne yapılacağına karar verin
+    print("Invalid URL");
+  }
+},
+
                     ),
                   );
                 },
@@ -184,11 +192,13 @@ class _NewsscreenState extends State<Newsscreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   CircleAvatar(
-                                    backgroundColor: Colors.black,
-                                    backgroundImage: NetworkImage(
-                                        user["profileImage"] ?? ""),
-                                    radius: 30,
-                                  ),
+  backgroundColor: Colors.black,
+  backgroundImage: (user["picture"] != null && user["picture"].isNotEmpty)
+      ? NetworkImage(user["picture"])
+      : const AssetImage('assets/images/1024.png') as ImageProvider,
+  radius: 30,
+),
+
                                   const SizedBox(height: 8),
                                   Text(
                                     user["name"],
@@ -216,4 +226,5 @@ class _NewsscreenState extends State<Newsscreen> {
       },
     );
   }
+  
 }

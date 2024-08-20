@@ -35,7 +35,13 @@ String email,
       throw Exception(e.code);
   }
  }
-
+Future<void> sendEmailVerif()async{
+try{
+await _firebaseAuth.currentUser?.sendEmailVerification();
+}on FirebaseException catch(e){
+throw e.code;
+}
+}
 
   //login
   Future<UserCredential> signIn({

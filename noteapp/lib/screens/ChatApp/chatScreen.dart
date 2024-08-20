@@ -92,11 +92,27 @@ Widget _buildUserList(){
 Widget _buildUserListItem(Map<String,dynamic> userData,BuildContext context){
  if(userData["email"] != getCurrentUser()!.email){
    //display all users except
-  return UserTile(text: userData["name"],
-  onTap: (){
-    Navigator.push(context, MaterialPageRoute(builder:(context) => Convosscreen(receiverName: userData["name"] , receiverId: userData["id"]),));
-  },);
- }
+  return Column(
+      children: [
+        UserTile(
+          text: userData["name"],
+          profile: userData["picture"],
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Convosscreen(
+                  receiverName: userData["name"],
+                  receiverId: userData["id"],
+                ),
+              ),
+            );
+          },
+        ),
+      //  Divider(thickness: 1,color: HexColor(noteColor),)
+      ],
+    );
+  }
  else{
   return Container();
  }

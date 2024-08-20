@@ -63,11 +63,11 @@ class _LoginscreenState extends State<Loginscreen> {
                             hintStyle: TextStyle(color: HexColor(noteColor)),
                             enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: HexColor(buttonBackground),
+                                    color: HexColor(noteColor),
                                     width: 1)),
                             focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: HexColor(noteColor))),
+                                    color: HexColor(buttonBackground))),
                             errorText: errorMessage != null ? 'Invalid email or password' : null,
                           ),
                           validator: (value) {
@@ -90,11 +90,11 @@ class _LoginscreenState extends State<Loginscreen> {
                             hintStyle: TextStyle(color: HexColor(noteColor)),
                             enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: HexColor(buttonBackground),
+                                    color: HexColor(noteColor),
                                     width: 1)),
                             focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: HexColor(noteColor))),
+                                    color: HexColor(buttonBackground))),
                             errorText: errorMessage != null ? 'Invalid email or password' : null,
                           ),
                           validator: (value) {

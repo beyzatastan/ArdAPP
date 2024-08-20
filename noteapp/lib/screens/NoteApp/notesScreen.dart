@@ -312,8 +312,12 @@ class _NotesscreenState extends State<Notesscreen> {
                                 children: [
                                   CircleAvatar(
                                     backgroundColor: Colors.black,
-                                    backgroundImage: NetworkImage(
-                                        user["profileImage"] ?? ""),
+                                    backgroundImage: user["picture"] != null &&
+                                            user["picture"].isNotEmpty
+                                        ? NetworkImage(user["picture"])
+                                        : const AssetImage(
+                                                'assets/images/1024.png')
+                                            as ImageProvider, // Casting for compatibility
                                     radius: 30,
                                   ),
                                   const SizedBox(height: 8),
@@ -337,7 +341,6 @@ class _NotesscreenState extends State<Notesscreen> {
                   },
                 ),
               ),
-              
             ],
           ),
         );
@@ -345,41 +348,3 @@ class _NotesscreenState extends State<Notesscreen> {
     );
   }
 }
-
-/*
-const SizedBox(
-                height: 2,
-              ),
-              Divider(
-                thickness: 1,
-                color: HexColor(noteColor),
-              ),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start, // Satır içi hizalama
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(builder:(context) => Chatscreen()));
-                        },
-                        child: ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(15), // Köşe radius'u
-                          child: Image.asset(
-                            'lib/assets/images/1024.png',
-                            width: 80, // İkonun genişliği
-                            height: 80, // İkonun yüksekliği
-                            fit: BoxFit.cover, // Resmin nasıl gösterileceği
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              )
-*/
