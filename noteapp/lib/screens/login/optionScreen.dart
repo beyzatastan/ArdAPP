@@ -58,7 +58,7 @@ class _OptionscreenState extends State<Optionscreen> {
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 60, horizontal: 40),
+            padding: EdgeInsets.symmetric(vertical: 40, horizontal: 40),
             child: Column(
               children: [
                  ElevatedButton(
