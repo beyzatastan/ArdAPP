@@ -6,11 +6,11 @@ import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/screens/NoteApp/addScreen.dart';
 import 'package:noteapp/screens/NoteApp/detailsScreen.dart';
 import 'package:noteapp/screens/NoteApp/editScreen.dart';
-import 'package:noteapp/screens/NoteApp/profileScreen.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:noteapp/screens/NoteApp/noteChatScreen.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
-import 'package:noteapp/services/auth.dart';
-import 'package:noteapp/services/chats/chat_services.dart';
+import 'package:noteapp/utils/auth.dart';
+import 'package:noteapp/utils/services/chats/chat_services.dart';
 
 class Notesscreen extends StatefulWidget {
   const Notesscreen({super.key});
@@ -22,6 +22,10 @@ class Notesscreen extends StatefulWidget {
 class _NotesscreenState extends State<Notesscreen> {
   late final Stream<QuerySnapshot> _notesStream;
   final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+  User? getCurrentUser() {
+    return FirebaseAuth.instance.currentUser;
+  }
+
   TextEditingController searchController = TextEditingController();
 
   @override
@@ -81,8 +85,8 @@ class _NotesscreenState extends State<Notesscreen> {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 14,left: 10),
+          const Padding(
+            padding: EdgeInsets.only(right: 14, left: 10),
           )
         ],
       ),
@@ -122,7 +126,7 @@ class _NotesscreenState extends State<Notesscreen> {
                             ActionPane(motion: const DrawerMotion(), children: [
                           SlidableAction(
                             onPressed: (context) {
-                              _displayBottomSheet(context);
+                              _displayBottomSheet(context, item);
                             },
                             backgroundColor: Colors.blue,
                             foregroundColor: Colors.white,
@@ -245,84 +249,102 @@ class _NotesscreenState extends State<Notesscreen> {
         .collection("Notes")
         .doc(noteId)
         .delete();
+  }
 
-  }Future<void> _displayBottomSheet(BuildContext context) {
-  return showModalBottomSheet(
-    context: context,
-    backgroundColor: HexColor(backgroundColor),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-    ),
-    builder: (context) {
-      return Container(
-        height: 300,
-        width: 400,
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            Text(
-              "Share your note with:",
-              style: TextStyle(
-                fontFamily: "Inter",
-                color: HexColor(noteColor),
-                fontSize: 16,
+  Future<void> _displayBottomSheet(BuildContext context, dynamic item) {
+    return showModalBottomSheet(
+      context: context,
+      backgroundColor: HexColor(backgroundColor),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      builder: (context) {
+        return Container(
+          height: 200,
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              Text(
+                "Share your note with:",
+                style: TextStyle(
+                  fontFamily: "Inter",
+                  color: HexColor(noteColor),
+                  fontSize: 16,
+                ),
               ),
-            ),
-            Expanded(
-              child: StreamBuilder(
-                stream: ChatServices().getUsersStream(), // Fetch user data from Firestore
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return Center(child: Text("Error: ${snapshot.error}"));
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text("No users available."));
-                  }
+              const SizedBox(height: 20),
+              // Kullanıcıların Profil Resimleri ve İsimleri
+              Container(
+                height: 90,
+                child: StreamBuilder(
+                  stream: ChatServices().getUsersStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text("Error: ${snapshot.error}"));
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text("No users available."));
+                    }
 
-                  final users = snapshot.data!;
+                    final users = snapshot.data!;
 
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
+                    return ListView(
+                      scrollDirection: Axis.horizontal,
                       children: users.map<Widget>((user) {
-                        return Container(
-                          width: 100,
-                          child: Column(
-                     //snapshot.data!.map<Widget>((userData)=>_buildUserListItem(userData,context)).toList(),
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CircleAvatar(
-                                backgroundColor: Colors.black,
-                                backgroundImage: NetworkImage(user["profileImage"] ?? ""),
-                                radius: 30,
+                        if (user["email"] != getCurrentUser()!.email) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => Notechatscreen(
+                                        receiverName: user["name"],
+                                        receiverId: user["id"],
+                                        noteTitle: item["noteTitle"],
+                                        noteDesc: item["noteDescription"],
+                                      )));
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 8),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: Colors.black,
+                                    backgroundImage: user["picture"] != null &&
+                                            user["picture"].isNotEmpty
+                                        ? NetworkImage(user["picture"])
+                                        : const AssetImage(
+                                                'assets/images/1024.png')
+                                            as ImageProvider, // Casting for compatibility
+                                    radius: 30,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    user["name"],
+                                    style: const TextStyle(
+                                      fontFamily: "Inter",
+                                      fontSize: 14,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                user["name"],
-                                style: const TextStyle(
-                                  fontFamily: "Inter",
-                                  fontSize: 15,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              Divider(thickness: 2,)
-                            ],
-                          ),
-                        );
+                            ),
+                          );
+                        } else {
+                          return Container();
+                        }
                       }).toList(),
-                    ),
-                    
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
+            ],
+          ),
+        );
+      },
+    );
+  }
 }

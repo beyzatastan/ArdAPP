@@ -6,7 +6,7 @@ import 'package:noteapp/extensions/user_tile.dart';
 import 'package:noteapp/screens/ChatApp/convosScreen.dart';
 import 'package:noteapp/screens/ChatApp/searchScreen.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
-import 'package:noteapp/services/chats/chat_services.dart';
+import 'package:noteapp/utils/services/chats/chat_services.dart';
 
 class Chatscreen extends StatefulWidget {
   const Chatscreen({super.key});
@@ -69,25 +69,7 @@ class _ChatscreenState extends State<Chatscreen> {
           )
         ],
       ),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              Expanded(child: _buildUserList()),
-            ],
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                IconButton(onPressed: () {}, icon: Icon(Icons.chat_bubble_sharp)),
-                IconButton(onPressed: () {}, icon: Icon(Icons.chat_bubble_sharp)),
-              ],
-            ),
-          ),
-        ],
-      ),
+      body: _buildUserList()
     );
   }
 
@@ -110,11 +92,27 @@ Widget _buildUserList(){
 Widget _buildUserListItem(Map<String,dynamic> userData,BuildContext context){
  if(userData["email"] != getCurrentUser()!.email){
    //display all users except
-  return UserTile(text: userData["name"],
-  onTap: (){
-    Navigator.push(context, MaterialPageRoute(builder:(context) => Convosscreen(receiverName: userData["name"] , receiverId: userData["id"]),));
-  },);
- }
+  return Column(
+      children: [
+        UserTile(
+          text: userData["name"],
+          profile: userData["picture"],
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Convosscreen(
+                  receiverName: userData["name"],
+                  receiverId: userData["id"],
+                ),
+              ),
+            );
+          },
+        ),
+      //  Divider(thickness: 1,color: HexColor(noteColor),)
+      ],
+    );
+  }
  else{
   return Container();
  }

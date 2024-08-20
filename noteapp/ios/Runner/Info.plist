@@ -14,6 +14,12 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>used to demonstraig photo plugin</string>
+	<key>NSCameraUsageDescription</key>
+	<string>used to demonstraig photo plugin</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>used to demonstraig photo plugin</string>
 	<key>CFBundleName</key>
 	<string>noteapp</string>
 	<key>CFBundlePackageType</key>
@@ -26,6 +32,11 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LSApplicationQueriesSchemes</key>
+<array>
+    <string>http</string>
+    <string>https</string>
+</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

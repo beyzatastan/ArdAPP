@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
-import 'package:noteapp/services/chats/chat_services.dart';
-import 'package:noteapp/services/chats/display_message.dart';
+import 'package:noteapp/utils/services/chats/chat_services.dart';
+import 'package:noteapp/utils/services/chats/display_message.dart';
 
 class Convosscreen extends StatefulWidget {
   const Convosscreen({super.key, required this.receiverName,required this.receiverId});

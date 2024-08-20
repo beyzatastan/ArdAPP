@@ -4,6 +4,7 @@ import 'package:noteapp/screens/login/loginscreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
+import 'package:noteapp/utils/services/news/api_services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,14 +35,18 @@ class _MyAppState extends State<MyApp> {
     return user != null; 
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
+    ApiServices apiServices = ApiServices();
+    apiServices.getNews();
     return FutureBuilder<bool>(
       future: _isSignedIn,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const MaterialApp(
-            home: Scaffold(
+          return MaterialApp(
+            home: const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
             debugShowCheckedModeBanner: false,

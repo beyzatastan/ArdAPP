@@ -1,10 +1,17 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
 
-class Forgotpasswordscreen extends StatelessWidget {
+class Forgotpasswordscreen extends StatefulWidget {
   const Forgotpasswordscreen({super.key});
 
+  @override
+  State<Forgotpasswordscreen> createState() => _ForgotpasswordscreenState();
+}
+
+class _ForgotpasswordscreenState extends State<Forgotpasswordscreen> {
+  FirebaseAuth _auth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,7 +67,8 @@ class Forgotpasswordscreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                ElevatedButton(onPressed: (){},
+                ElevatedButton(onPressed: (){
+                },
                  style: ElevatedButton.styleFrom(
                  backgroundColor: HexColor(buttonBackground),
                  foregroundColor: HexColor(buttoncolor),

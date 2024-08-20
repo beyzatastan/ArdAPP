@@ -5,7 +5,7 @@ import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/screens/login/forgotPassword.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
 import 'package:noteapp/screens/login/registerScreen.dart';
-import 'package:noteapp/services/auth.dart';
+import 'package:noteapp/utils/auth.dart';
 
 class Loginscreen extends StatefulWidget {
   const Loginscreen({super.key});
@@ -63,11 +63,11 @@ class _LoginscreenState extends State<Loginscreen> {
                             hintStyle: TextStyle(color: HexColor(noteColor)),
                             enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: HexColor(buttonBackground),
+                                    color: HexColor(noteColor),
                                     width: 1)),
                             focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: HexColor(noteColor))),
+                                    color: HexColor(buttonBackground))),
                             errorText: errorMessage != null ? 'Invalid email or password' : null,
                           ),
                           validator: (value) {
@@ -90,11 +90,11 @@ class _LoginscreenState extends State<Loginscreen> {
                             hintStyle: TextStyle(color: HexColor(noteColor)),
                             enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: HexColor(buttonBackground),
+                                    color: HexColor(noteColor),
                                     width: 1)),
                             focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: HexColor(noteColor))),
+                                    color: HexColor(buttonBackground))),
                             errorText: errorMessage != null ? 'Invalid email or password' : null,
                           ),
                           validator: (value) {
