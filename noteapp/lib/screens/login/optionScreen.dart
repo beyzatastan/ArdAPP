@@ -19,7 +19,7 @@ class _OptionscreenState extends State<Optionscreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: HexColor(backgroundColor),
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
