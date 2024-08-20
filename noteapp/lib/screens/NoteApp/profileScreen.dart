@@ -68,6 +68,22 @@ void initState() {
           style: TextStyle(
               fontFamily: "Inter", fontSize: 26, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          TextButton(
+                    onPressed: () {
+                      signOut();
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                            builder: (context) => const Loginscreen()),
+                        (Route<dynamic> route) => false,
+                      );
+                    },
+                    child: const Text(
+                      "Sign Out",
+                      style: TextStyle(
+                          color: Colors.red, fontFamily: "Inter", fontSize: 18),
+                    ))
+        ],
       ),
       backgroundColor: HexColor(backgroundColor),
       body: SingleChildScrollView(
@@ -167,20 +183,7 @@ void initState() {
                 const SizedBox(
                   height: 20,
                 ),
-                TextButton(
-                    onPressed: () {
-                      signOut();
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                            builder: (context) => const Loginscreen()),
-                        (Route<dynamic> route) => false,
-                      );
-                    },
-                    child: const Text(
-                      "Sign Out",
-                      style: TextStyle(
-                          color: Colors.red, fontFamily: "Inter", fontSize: 18),
-                    ))
+                
               ],
             ),
           ),

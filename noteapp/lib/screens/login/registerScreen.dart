@@ -1,14 +1,14 @@
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // Firebase Storage importu
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore importu
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/screens/login/loginScreen.dart';
-import 'package:noteapp/screens/login/optionScreen.dart';
+import 'package:noteapp/screens/login/verifyScreen.dart';
 import 'package:noteapp/utils/auth.dart';
 
 class Registerscreen extends StatefulWidget {
@@ -84,7 +84,9 @@ class _RegisterscreenState extends State<Registerscreen> {
                             ),
                           ),
                   ),
-                  SizedBox(height: 10,),
+                  SizedBox(
+                    height: 10,
+                  ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                     child: Column(
@@ -177,9 +179,16 @@ class _RegisterscreenState extends State<Registerscreen> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          createUser();
+                          await createUser();
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  Verifyscreen(email: emailCont.text),
+                            ),
+                            (Route<dynamic> route) => false,
+                          );
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -233,7 +242,8 @@ class _RegisterscreenState extends State<Registerscreen> {
 
   Future<void> createUser() async {
     try {
-      final UserCredential userCredential = await Auth().signUpWitEmailandPassword(
+      final UserCredential userCredential =
+          await Auth().signUpWitEmailandPassword(
         emailCont.text,
         passwordCont.text,
         nameCont.text,
@@ -241,7 +251,10 @@ class _RegisterscreenState extends State<Registerscreen> {
 
       final String userId = userCredential.user!.uid;
 
-      // Eğer bir resim seçildiyse, bu resmi Firebase Storage'a yükleyin
+      // E-posta doğrulama e-postası gönder
+      await userCredential.user!.sendEmailVerification();
+
+      // Resim Firebase Storage'a yükleniyor
       String? profilePictureUrl;
       if (_imageFile != null) {
         final storageRef = FirebaseStorage.instance
@@ -253,31 +266,23 @@ class _RegisterscreenState extends State<Registerscreen> {
         profilePictureUrl = await storageRef.getDownloadURL();
       }
 
-      // Kullanıcı bilgilerini Firestore'a kaydedin
-      await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(userId)
-          .set({
+      // Kullanıcı bilgilerini Firestore'a kaydet
+      await FirebaseFirestore.instance.collection('Users').doc(userId).set({
         'email': emailCont.text,
         "id": userId,
         'name': nameCont.text,
-        "picture":profilePictureUrl,
+        "picture": profilePictureUrl
       });
-
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const Optionscreen(),
-        ),
-        (Route<dynamic> route) => false,
-      );
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       switch (e.code) {
         case 'email-already-in-use':
-          errorMessage = 'An account already exists for that email. Please use a different email or try logging in.';
+          errorMessage =
+              'An account already exists for that email. Please use a different email or try logging in.';
           break;
         case 'weak-password':
-          errorMessage = 'The password provided is too weak. Please choose a stronger password.';
+          errorMessage =
+              'The password provided is too weak. Please choose a stronger password.';
           break;
         case 'invalid-email':
           errorMessage = 'The email address is badly formatted.';
@@ -292,7 +297,8 @@ class _RegisterscreenState extends State<Registerscreen> {
     } catch (e) {
       print('Unexpected error: ${e.toString()}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An unexpected error occurred. Please try again.')),
+        SnackBar(
+            content: Text('An unexpected error occurred. Please try again.')),
       );
     }
   }
