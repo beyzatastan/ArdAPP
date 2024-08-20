@@ -19,11 +19,46 @@ class _OptionscreenState extends State<Optionscreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: HexColor(backgroundColor),
+      appBar: AppBar(
+        backgroundColor: HexColor(backgroundColor),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => Profilescreen()));
+              },
+              child: Text(
+                "Edit Profile",
+                style: TextStyle(
+                  color: HexColor(buttonBackground),
+                  fontFamily: "Inter",
+                  fontSize: 20,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                signOut();
+              },
+              child: const Text(
+                "Sign Out",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontFamily: "Inter",
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 100, horizontal: 40),
+            padding: EdgeInsets.symmetric(vertical: 60, horizontal: 40),
             child: Column(
               children: [
                  ElevatedButton(
@@ -119,34 +154,7 @@ class _OptionscreenState extends State<Optionscreen> {
                 const SizedBox(
                   height: 40,
                 ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton(
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(builder:(context) => Profilescreen()));
-                        },
-                        child:  Text(
-                          "Edit Profile",
-                          style: TextStyle(
-                              color: HexColor(buttonBackground),
-                              fontFamily: "Inter",
-                              fontSize: 23),
-                        )),
-                         SizedBox(height: 5,),
-                    TextButton(
-                        onPressed: () {signOut();},
-                        child: const Text(
-                          "Sign Out",
-                          style: TextStyle(
-                              color: Colors.red,
-                              fontFamily: "Inter",
-                              fontSize: 18),
-                        )),
-                       
-                        
-                  ],
-                ),
+            
               ],
             ),
           ),

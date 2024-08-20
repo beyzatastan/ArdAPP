@@ -7,8 +7,10 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore importu
 import 'package:noteapp/extensions/colors.dart';
+import 'package:noteapp/main.dart';
 import 'package:noteapp/screens/login/loginScreen.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
+import 'package:noteapp/screens/login/verifyScreen.dart';
 import 'package:noteapp/utils/auth.dart';
 
 class Registerscreen extends StatefulWidget {
@@ -179,6 +181,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                   ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
+                          Navigator.of(context).push(MaterialPageRoute(builder:(context) => Verifyscreen(email: emailCont.text,),));
                           createUser();
                         }
                       },
@@ -261,15 +264,8 @@ class _RegisterscreenState extends State<Registerscreen> {
         'email': emailCont.text,
         "id": userId,
         'name': nameCont.text,
-        "picture":profilePictureUrl,
+        "picture":profilePictureUrl
       });
-
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const Optionscreen(),
-        ),
-        (Route<dynamic> route) => false,
-      );
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       switch (e.code) {
