@@ -49,11 +49,11 @@ class UserTile extends StatelessWidget {
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: Colors.black,
+                backgroundColor: Colors.grey[300],
                 backgroundImage: profile != null && profile.isNotEmpty
                     ? NetworkImage(profile)
                     : const AssetImage('assets/images/1024.png')
-                        as ImageProvider, // Casting for compatibility
+                        as ImageProvider, 
                 radius: 35,
               ),
               SizedBox(width: 17,),

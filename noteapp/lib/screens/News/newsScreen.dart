@@ -8,7 +8,9 @@ import 'package:noteapp/screens/login/optionScreen.dart';
 import 'package:noteapp/utils/models/newsModel.dart';
 import 'package:noteapp/utils/services/chats/chat_services.dart';
 import 'package:noteapp/utils/services/news/api_services.dart';
-import 'package:url_launcher/url_launcher.dart';
+//import 'package:url_launcher/url_launcher.dart';
+//news i internette açmak için
+import 'package:webview_flutter/webview_flutter.dart';
 
 class Newsscreen extends StatefulWidget {
   const Newsscreen({super.key});
@@ -20,14 +22,14 @@ class Newsscreen extends StatefulWidget {
 class _NewsscreenState extends State<Newsscreen> {
   final ApiServices newsapi = ApiServices();
   final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+late WebViewController  _webViewController ;
+
   User? getCurrentUser() {
     return FirebaseAuth.instance.currentUser;
   }
 
-
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       backgroundColor: HexColor(backgroundColor),
       appBar: AppBar(
@@ -104,14 +106,8 @@ class _NewsscreenState extends State<Newsscreen> {
                       contentPadding: const EdgeInsets.all(14),
                       tileColor: HexColor(backgroundColor),
                       onTap: () {
-  if (news.url != null && news.url!.isNotEmpty) {
-    _launchURL(news.url!);
-  } else {
-    // URL geçersizse veya boşsa ne yapılacağına karar verin
-    print("Invalid URL");
-  }
-},
-
+                       _openNewsInWebView(news.url);
+                      },
                     ),
                   );
                 },
@@ -124,14 +120,139 @@ class _NewsscreenState extends State<Newsscreen> {
       ),
     );
   }
-
+/*
   Future<void> _launchURL(String url) async {
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url));
     } else {
       throw 'Could not launch $url';
     }
+  } */
+
+  Future<void> _displayBottomSheet(BuildContext context, dynamic item) {
+    return showModalBottomSheet(
+      context: context,
+      backgroundColor: HexColor(backgroundColor),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      builder: (context) {
+        return Container(
+          height: 200,
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              Text(
+                "Share your note with:",
+                style: TextStyle(
+                  fontFamily: "Inter",
+                  color: HexColor(noteColor),
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                height: 90,
+                child: StreamBuilder(
+                  stream: ChatServices().getUsersStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text("Error: ${snapshot.error}"));
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text("No users available."));
+                    }
+
+                    final users = snapshot.data!;
+
+                    return ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: users.map<Widget>((user) {
+                        if (user["email"] != getCurrentUser()!.email) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => Newschatscreen(
+                                        newsUrl: item.url,
+                                        receiverName: user["name"],
+                                        receiverId: user["id"],
+                                      )));
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 8),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: Colors.black,
+                                    backgroundImage: (user["picture"] != null &&
+                                            user["picture"].isNotEmpty)
+                                        ? NetworkImage(user["picture"])
+                                        : const AssetImage(
+                                                'assets/images/1024.png')
+                                            as ImageProvider,
+                                    radius: 30,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    user["name"],
+                                    style: const TextStyle(
+                                      fontFamily: "Inter",
+                                      fontSize: 14,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        } else {
+                          return Container();
+                        }
+                      }).toList(),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
+
+void _openNewsInWebView(String? url) {
+
+
+  _webViewController = WebViewController()
+    ..setJavaScriptMode(JavaScriptMode.unrestricted)
+    ..loadRequest(Uri.parse(url!));
+
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => Scaffold(
+        appBar: AppBar(
+          backgroundColor: HexColor(backgroundColor),
+        ),
+        body: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Stack(
+              children: [
+                WebViewWidget(controller: _webViewController),
+                
+              ],
+            );
+          },
+        ),
+      ),
+    ),
+  );
+
+
+
 
   Future<void> _displayBottomSheet(BuildContext context, dynamic item) {
     return showModalBottomSheet(
@@ -192,13 +313,15 @@ class _NewsscreenState extends State<Newsscreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   CircleAvatar(
-  backgroundColor: Colors.black,
-  backgroundImage: (user["picture"] != null && user["picture"].isNotEmpty)
-      ? NetworkImage(user["picture"])
-      : const AssetImage('assets/images/1024.png') as ImageProvider,
-  radius: 30,
-),
-
+                                    backgroundColor: Colors.black,
+                                    backgroundImage: (user["picture"] != null &&
+                                            user["picture"].isNotEmpty)
+                                        ? NetworkImage(user["picture"])
+                                        : const AssetImage(
+                                                'assets/images/1024.png')
+                                            as ImageProvider,
+                                    radius: 30,
+                                  ),
                                   const SizedBox(height: 8),
                                   Text(
                                     user["name"],
@@ -226,5 +349,5 @@ class _NewsscreenState extends State<Newsscreen> {
       },
     );
   }
-  
+}
 }
