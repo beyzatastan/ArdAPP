@@ -10,6 +10,8 @@ class UserTile extends StatelessWidget {
     required this.text,
     required this.profile,
     required this.chatId,
+    required this.receiverId,
+    required this.lastMessage,
     this.onTap,
     this.onDelete,
     this.onEdit,
@@ -20,6 +22,8 @@ class UserTile extends StatelessWidget {
   final void Function()? onDelete;
   final void Function()? onEdit;
   final String chatId;
+  final String lastMessage;
+  final String receiverId;
   final dynamic profile;
 
   @override
@@ -31,7 +35,7 @@ class UserTile extends StatelessWidget {
         children: [
           SlidableAction(
             onPressed: (context) {
-              deleteCollection(chatId);
+              deleteCollection(chatId, receiverId);
             },
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
@@ -58,14 +62,30 @@ class UserTile extends StatelessWidget {
                         as ImageProvider,
                 radius: 35,
               ),
-              const SizedBox(width: 17,),
-              Text(
-                text,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontFamily: "Inter",
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              const SizedBox(width: 15), // Profil resmi ve metin arasındaki boşluk
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      text,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontFamily: "Inter",
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis, // Uzun metinler için sığdırma
+                    ),
+                    Text(
+                      lastMessage, // Son mesajı burada göster
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 16,
+                      ),
+                      overflow: TextOverflow.ellipsis, // Uzun mesajlar için sığdırma
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -75,7 +95,8 @@ class UserTile extends StatelessWidget {
     );
   }
 }
-Future<void> deleteCollection(String chatId) async {
+
+Future<void> deleteCollection(String chatId, String receiverId) async {
   try {
     var snapshots = await FirebaseFirestore.instance
         .collection("Chats")
@@ -87,9 +108,11 @@ Future<void> deleteCollection(String chatId) async {
       await doc.reference.delete();
     }
 
+    await FirebaseFirestore.instance.collection("Chats").doc(chatId).delete();
+
     await FirebaseFirestore.instance
-        .collection("Chats")
-        .doc(chatId)
+        .collection("Receivers")
+        .doc(receiverId)
         .delete();
 
     print("Collection and document successfully deleted");

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
+import 'package:noteapp/screens/ChatApp/chatScreen.dart';
 import 'package:noteapp/utils/services/chats/chat_services.dart';
 import 'package:noteapp/utils/services/chats/display_message.dart';
 
@@ -21,6 +22,15 @@ class _ConvosscreenState extends State<Convosscreen> {
     return Scaffold(
       backgroundColor: HexColor(backgroundColor),
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const Chatscreen()),
+              (Route<dynamic> route) => false,
+            );
+          },
+        ),
         backgroundColor: HexColor(backgroundColor),
         title: Align(
           alignment: Alignment.centerLeft,

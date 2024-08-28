@@ -131,12 +131,12 @@ class _SearchscreenState extends State<Searchscreen> {
                         contentPadding: const EdgeInsets.all(14),
                         tileColor: HexColor(backgroundColor),
                         onTap: () {
-                          Navigator.of(context).push(
+                          Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
                                 builder: (context) => Convosscreen(
                                       receiverName: item["name"] ?? "",
                                       receiverId: item["id"] ?? "",
-                                    )),
+                                    )), (Route<dynamic> route) => false,
                           );
                         },
                       ),

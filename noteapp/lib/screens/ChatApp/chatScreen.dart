@@ -77,7 +77,7 @@ class _ChatscreenState extends State<Chatscreen> {
 //build a list of users except current user
 Widget _buildUserList() {
   return StreamBuilder<List<Map<String, dynamic>>>(
-    stream: _chatServices.getUsersStream(),
+    stream: _chatServices.getUsersWithChatHistory(),
     builder: (context, snapshot) {
       if (snapshot.hasError) {
         return Text("Error: ${snapshot.error}");
@@ -91,44 +91,46 @@ Widget _buildUserList() {
       }
 
       final users = snapshot.data!;
-      return ListView(
-        children: users.map<Widget>((userData) => _buildUserListItem(userData, context)).toList(),
-      );
-    },
-  );
-}
+       return ListView(
+          children: users.map<Widget>((userData) {
+            if (userData["email"] != getCurrentUser()!.email) {
+              List<String> ids = [getCurrentUser()!.uid, userData["id"]];
+              ids.sort();
+              String chatRoomId = ids.join("_");
 
-Widget _buildUserListItem(Map<String, dynamic> userData, BuildContext context) {
-  if (userData["email"] != getCurrentUser()!.email) {
-    List<String> ids = [getCurrentUser()!.uid, userData["id"]];
-    ids.sort();
-    String chatRoomId = ids.join("_");
+              return FutureBuilder<String>(
+                future: _chatServices.getLastMessage(chatRoomId),
+                builder: (context, messageSnapshot) {
+                  if (!messageSnapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-    return Column(
-      children: [
-        UserTile(
-          text: userData["name"],
-          profile: userData["picture"],
-          chatId: chatRoomId,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => Convosscreen(
-                  receiverName: userData["name"],
-                  receiverId: userData["id"],
-                ),
-              ),
-            );
-          },
-        ),
-        // Divider(thickness: 1, color: HexColor(noteColor),)
-      ],
+                  return UserTile(
+                    text: userData["name"],
+                    profile: userData["picture"],
+                    chatId: chatRoomId,
+                    receiverId: userData["id"],
+                    lastMessage: messageSnapshot.data!,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Convosscreen(
+                            receiverName: userData["name"],
+                            receiverId: userData["id"],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            } else {
+              return Container();
+            }
+          }).toList(),
+        );
+      },
     );
-  } else {
-    return Container();
   }
-}
-
-
 }
