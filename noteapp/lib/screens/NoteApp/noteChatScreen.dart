@@ -56,10 +56,14 @@ class _NotechatscreenState extends State<Notechatscreen> {
             height: MediaQuery.of(context).size.height * 0.75,
             child: DisplayMessage(receivername: widget.receiverName,receiverId: widget.receiverId),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+         Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
             child: Row(
               children: [
+                IconButton(
+                  icon: Icon(Icons.add_circle,size: 26,color: HexColor(buttonBackground),),
+                  onPressed: () => _displayBottomSheet(context),
+                ),
                 Expanded(
                     child: TextFormField(
                   controller: messageCont,
@@ -119,5 +123,25 @@ class _NotechatscreenState extends State<Notechatscreen> {
       messageCont.clear();
     }
 
+  }
+
+    void _displayBottomSheet(BuildContext context,) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: HexColor(backgroundColor),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      builder: (context) {
+        return Container(
+          height: 200,
+          child: Column(
+            children: [
+              
+            ],
+          ),
+        );
+      },
+    );
   }
 }

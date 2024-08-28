@@ -180,7 +180,7 @@ class _NotesscreenState extends State<Notesscreen> {
                                 color: HexColor(noteColor),
                               ),
                               maxLines: 2, // Gösterilecek maksimum satır sayısı
-                              overflow: TextOverflow.ellipsis, selectionColor: HexColor(noteColor),
+                               overflow: TextOverflow.ellipsis, selectionColor: HexColor(noteColor),
                             ),
                           ),
                           contentPadding: const EdgeInsets.all(14),
