@@ -53,9 +53,13 @@ class _ConvosscreenState extends State<Convosscreen> {
             child: DisplayMessage(receivername: widget.receiverName,receiverId: widget.receiverId),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
             child: Row(
               children: [
+                IconButton(
+                  icon: Icon(Icons.add_circle,size: 26,color: HexColor(buttonBackground),),
+                  onPressed: () => _displayBottomSheet(context),
+                ),
                 Expanded(
                     child: TextFormField(
                   controller: messageCont,
@@ -114,5 +118,25 @@ class _ConvosscreenState extends State<Convosscreen> {
       messageCont.clear();
     }
 
+  }
+
+    void _displayBottomSheet(BuildContext context,) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: HexColor(backgroundColor),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      builder: (context) {
+        return Container(
+          height: 200,
+          child: Column(
+            children: [
+              
+            ],
+          ),
+        );
+      },
+    );
   }
 }

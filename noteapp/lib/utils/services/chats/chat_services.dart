@@ -10,7 +10,6 @@ class ChatServices {
   Stream<List<Map<String, dynamic>>> getUsersStream() {
     return _firestore.collection('Users').snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
-        print("Snapshot docs count: ${snapshot.docs.length}");
         final user = doc.data();
         return user;
       }).toList();
@@ -77,7 +76,6 @@ Future<void> sendMessage(String receiverId, message) async {
       }
     }
 
-    print("Matching users count: ${users.length}");
     return users;
   });
 }
