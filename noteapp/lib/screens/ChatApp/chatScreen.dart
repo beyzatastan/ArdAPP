@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -73,30 +74,42 @@ class _ChatscreenState extends State<Chatscreen> {
     );
   }
 
-  Future deleteChat(String chatId) async {
-  }
-
 //build a list of users except current user
-Widget _buildUserList(){
-  return StreamBuilder(stream: _chatServices.getUsersStream(), builder:(context, snapshot) {
-    if(snapshot.hasError){
-      return Text("error");
-    }if(snapshot.connectionState == ConnectionState.waiting){
-      return const Center(child: CircularProgressIndicator());
-    }
-    return ListView(
-      children: snapshot.data!.map<Widget>((userData)=>_buildUserListItem(userData,context)).toList(),
-    );
-  },);
+Widget _buildUserList() {
+  return StreamBuilder<List<Map<String, dynamic>>>(
+    stream: _chatServices.getUsersStream(),
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return Text("Error: ${snapshot.error}");
+      }
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        return const Center(child: Text("No users found"));
+      }
+
+      final users = snapshot.data!;
+      return ListView(
+        children: users.map<Widget>((userData) => _buildUserListItem(userData, context)).toList(),
+      );
+    },
+  );
 }
-Widget _buildUserListItem(Map<String,dynamic> userData,BuildContext context){
- if(userData["email"] != getCurrentUser()!.email){
-   //display all users except
-  return Column(
+
+Widget _buildUserListItem(Map<String, dynamic> userData, BuildContext context) {
+  if (userData["email"] != getCurrentUser()!.email) {
+    List<String> ids = [getCurrentUser()!.uid, userData["id"]];
+    ids.sort();
+    String chatRoomId = ids.join("_");
+
+    return Column(
       children: [
         UserTile(
           text: userData["name"],
           profile: userData["picture"],
+          chatId: chatRoomId,
           onTap: () {
             Navigator.push(
               context,
@@ -109,13 +122,13 @@ Widget _buildUserListItem(Map<String,dynamic> userData,BuildContext context){
             );
           },
         ),
-      //  Divider(thickness: 1,color: HexColor(noteColor),)
+        // Divider(thickness: 1, color: HexColor(noteColor),)
       ],
     );
+  } else {
+    return Container();
   }
- else{
-  return Container();
- }
 }
+
 
 }

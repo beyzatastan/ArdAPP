@@ -179,6 +179,8 @@ class _NotesscreenState extends State<Notesscreen> {
                                 fontFamily: "Inter",
                                 color: HexColor(noteColor),
                               ),
+                              maxLines: 2, // Gösterilecek maksimum satır sayısı
+                              overflow: TextOverflow.ellipsis, selectionColor: HexColor(noteColor),
                             ),
                           ),
                           contentPadding: const EdgeInsets.all(14),

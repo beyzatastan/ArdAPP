@@ -8,21 +8,21 @@ class ChatServices {
 
   // Kullanıcıları almak için stream
   Stream<List<Map<String, dynamic>>> getUsersStream() {
+    
     return _firestore.collection('Users').snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
+        print("Snapshot docs count: ${snapshot.docs.length}");
         final user = doc.data();
         return user;
       }).toList();
     });
   }
-
-  //send message
-  Future<void> sendMessage(String receiverId, message) async {
+Future<void> sendMessage(String receiverId, message) async {
     final String currentUserId = _auth.currentUser!.uid;
     final String? currentUserEmail = _auth.currentUser!.email;
     final Timestamp timestamp = Timestamp.now();
 
-//creaate new message
+//create new message
     Messagemodel newMessage = Messagemodel(
         senderId: currentUserId,
         senderEmail: currentUserEmail!,
@@ -33,22 +33,22 @@ class ChatServices {
     ids.sort();
     String chatRoomId = ids.join("_");
     await _firestore
-        .collection("Chat_Rooms")
+        .collection("Chats")
         .doc(chatRoomId)
         .collection("Messages")
         .add(newMessage.toMap());
   }
   //get message
-
   Stream<QuerySnapshot> getMessages(String userId, otheUserId) {
     List<String> ids = [userId, otheUserId];
     ids.sort();
     String chatRoomId = ids.join("_");
     return _firestore
-        .collection("Chat_Rooms")
+        .collection("Chats")
         .doc(chatRoomId)
         .collection("Messages")
         .orderBy("timestamp", descending: false)
         .snapshots();
   }
 }
+
