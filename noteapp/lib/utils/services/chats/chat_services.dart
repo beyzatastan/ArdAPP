@@ -35,7 +35,8 @@ Future<void> sendMessage(String receiverId, message) async {
         senderEmail: currentUserEmail!,
         receiverId: receiverId,
         message: message,
-        timestamp: timestamp);
+        timestamp: timestamp,
+        messageType: "Text");
     List<String> ids = [currentUserId, receiverId];
     ids.sort();
     String chatRoomId = ids.join("_");
@@ -99,5 +100,30 @@ Future<String> getLastMessage(String chatId) async {
     return 'Error';
   }
 }
+/*
+Future<void> createGroupChat(String groupName) async{
+ final user = _auth.currentUser;
+ if(user==null){
+  throw Exception("try login");
+ }
+ final now = DateTime.now();
+ final id =now.toString();
+ final selectedMembers = ref.read(selectedGroupMembersProvider);
 
+ final chatRooms = ChatRooms{
+  id:id,chatr
+ }
+}
+List<String> _memberIds(User user,List<AppUser?> selectedMembers){
+  List<String> ids=[user.uid];
+  for(var member in selectedMembers){
+    if(member != null && !ids.contains(member.uid)){
+      ids.add(member.uid);
+    }
+  }
+  return{...ids}.toList();
+}
+Future<void> addChatRoomMember(ChatRoom chatroom,AppUser appuser) async{
+  
+} */
 }

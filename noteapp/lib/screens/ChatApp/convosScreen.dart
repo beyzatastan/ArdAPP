@@ -4,6 +4,7 @@ import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/screens/ChatApp/chatScreen.dart';
 import 'package:noteapp/utils/services/chats/chat_services.dart';
 import 'package:noteapp/utils/services/chats/display_message.dart';
+import 'package:noteapp/widgets/widgets.dart';
 
 class Convosscreen extends StatefulWidget {
   const Convosscreen({super.key, required this.receiverName,required this.receiverId});
@@ -22,15 +23,7 @@ class _ConvosscreenState extends State<Convosscreen> {
     return Scaffold(
       backgroundColor: HexColor(backgroundColor),
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const Chatscreen()),
-              (Route<dynamic> route) => false,
-            );
-          },
-        ),
+        leading: backButton(context, Chatscreen()),
         backgroundColor: HexColor(backgroundColor),
         title: Align(
           alignment: Alignment.centerLeft,

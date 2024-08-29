@@ -11,6 +11,7 @@ import 'package:noteapp/screens/NoteApp/noteChatScreen.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
 import 'package:noteapp/utils/auth.dart';
 import 'package:noteapp/utils/services/chats/chat_services.dart';
+import 'package:noteapp/widgets/widgets.dart';
 
 class Notesscreen extends StatefulWidget {
   const Notesscreen({super.key});
@@ -44,15 +45,7 @@ class _NotesscreenState extends State<Notesscreen> {
       backgroundColor: HexColor(backgroundColor),
       appBar: AppBar(
         backgroundColor: HexColor(backgroundColor),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const Optionscreen()),
-              (Route<dynamic> route) => false,
-            );
-          },
-        ),
+        leading: backButton(context, Optionscreen()),
         actions: [
           Expanded(
             child: Padding(

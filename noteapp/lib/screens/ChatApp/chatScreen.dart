@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
@@ -8,6 +7,7 @@ import 'package:noteapp/screens/ChatApp/convosScreen.dart';
 import 'package:noteapp/screens/ChatApp/searchScreen.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
 import 'package:noteapp/utils/services/chats/chat_services.dart';
+import 'package:noteapp/widgets/widgets.dart';
 
 class Chatscreen extends StatefulWidget {
   const Chatscreen({super.key});
@@ -30,15 +30,7 @@ class _ChatscreenState extends State<Chatscreen> {
     return Scaffold(
       backgroundColor: HexColor(backgroundColor),
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const Optionscreen()),
-              (Route<dynamic> route) => false,
-            );
-          },
-        ),
+        leading: backButton(context, Optionscreen()),
         backgroundColor: HexColor(backgroundColor),
         title: const Align(
             alignment: Alignment.centerLeft,
@@ -82,14 +74,40 @@ Widget _buildUserList() {
       if (snapshot.hasError) {
         return Text("Error: ${snapshot.error}");
       }
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const Center(child: CircularProgressIndicator());
-      }
-
       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-        return const Center(child: Text("No users found"));
-      }
-
+  return Center(
+    child: Column(
+      mainAxisAlignment: (MainAxisAlignment.center),
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Icon(
+          Icons.info_outline,
+          size: 50,
+          color: Colors.grey,
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          "No users found",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 5),
+          child: const Text(
+            "You can start a new conversation by using the add button",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey,
+            ),
+          ),
+        ),],
+    ),
+  );
+}
       final users = snapshot.data!;
        return ListView(
           children: users.map<Widget>((userData) {

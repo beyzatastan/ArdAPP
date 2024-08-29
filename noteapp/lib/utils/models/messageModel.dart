@@ -6,8 +6,11 @@ class Messagemodel {
   final String receiverId;
   final String message;
   final Timestamp timestamp;
+  final String messageType;
+  
 
-  Messagemodel({
+  Messagemodel( {
+    required this.messageType,
     required this.senderId,
     required this.senderEmail,
     required this.receiverId,
@@ -22,7 +25,8 @@ class Messagemodel {
       "senderEmail":senderEmail,
       "receiverId":receiverId,
       "message":message,
-      "timestamp":timestamp
+      "timestamp":timestamp,
+      "messageType":messageType
     };
   }
 

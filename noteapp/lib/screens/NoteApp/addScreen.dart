@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/screens/NoteApp/notesScreen.dart';
+import 'package:noteapp/widgets/widgets.dart';
 
 class Addscreen extends StatefulWidget {
   const Addscreen({super.key});
@@ -36,37 +37,11 @@ class _AddscreenState extends State<Addscreen> {
             padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
             child: Column(
               children: [
-                TextField(
-                  controller: titleCont,
-                  decoration: InputDecoration(
-                      fillColor: Colors.white,
-                      filled: true,
-                      hintText: "Note Title",
-                      hintStyle: TextStyle(color: HexColor(noteColor)),
-                      enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: HexColor(noteColor), width: 1)),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: HexColor(buttonBackground)))),
-                ),
+                textField(titleCont, "Note Title..."),
                 const SizedBox(
                   height: 40,
                 ),
-                TextFormField(
-                  controller: descCont,
-                  keyboardType: TextInputType.multiline,
-                  maxLines: null,
-                  decoration: InputDecoration(
-                      fillColor: Colors.white,
-                      filled: true,
-                      hintText: "Note Description",
-                      hintStyle: TextStyle(color: HexColor(noteColor)),
-                      enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: HexColor(noteColor), width: 1)),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: HexColor(buttonBackground)))),
-                ),
+                textField(descCont, "Note Description..."),
                 const SizedBox(
                   height: 60,
                 ),

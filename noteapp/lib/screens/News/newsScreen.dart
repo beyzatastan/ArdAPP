@@ -8,6 +8,7 @@ import 'package:noteapp/screens/login/optionScreen.dart';
 import 'package:noteapp/utils/models/newsModel.dart';
 import 'package:noteapp/utils/services/chats/chat_services.dart';
 import 'package:noteapp/utils/services/news/api_services.dart';
+import 'package:noteapp/widgets/widgets.dart';
 //import 'package:url_launcher/url_launcher.dart';
 //news i internette açmak için
 import 'package:webview_flutter/webview_flutter.dart';
@@ -33,15 +34,7 @@ late WebViewController  _webViewController ;
     return Scaffold(
       backgroundColor: HexColor(backgroundColor),
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const Optionscreen()),
-              (Route<dynamic> route) => false,
-            );
-          },
-        ),
+        leading: backButton(context, Optionscreen()),
         backgroundColor: HexColor(backgroundColor),
         title: const Align(
             alignment: Alignment.centerLeft,
@@ -94,9 +87,9 @@ late WebViewController  _webViewController ;
                         ),
                       ),
                       subtitle: Padding(
-                        padding: const EdgeInsets.only(top: 20),
+                        padding: const EdgeInsets.only(top: 10),
                         child: Text(
-                          news.description ?? "",
+                          news.author ?? "",
                           style: TextStyle(
                             fontFamily: "Inter",
                             color: HexColor(noteColor),
