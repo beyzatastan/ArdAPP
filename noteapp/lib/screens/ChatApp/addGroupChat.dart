@@ -6,7 +6,7 @@ import 'package:noteapp/utils/services/chats/chat_services.dart';
 import 'package:noteapp/widgets/widgets.dart';
 
 class addGroupChat extends StatefulWidget {
- final Stream<List<Map<String, dynamic>>> usersStream;
+  final Stream<List<Map<String, dynamic>>> usersStream;
   const addGroupChat({super.key, required this.usersStream});
 
   @override
@@ -20,7 +20,7 @@ class _addGroupChatState extends State<addGroupChat> {
   List<Map<String, dynamic>> filteredConvos = [];
   List<Map<String, dynamic>> allConvos = [];
 
-@override
+  @override
   void initState() {
     super.initState();
     widget.usersStream.listen((convos) {
@@ -33,7 +33,7 @@ class _addGroupChatState extends State<addGroupChat> {
     });
   }
 
- List<String> chatRoomMemberIds=[];
+  List<Map<String, dynamic>> chatRoomMemberIds = [];
 
   void filterSearch(String query) {
     setState(() {
@@ -46,68 +46,121 @@ class _addGroupChatState extends State<addGroupChat> {
     });
   }
 
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: HexColor(backgroundColor),
       appBar: AppBar(
-      backgroundColor: HexColor(backgroundColor),
-  title: Padding(
-    padding: const EdgeInsets.fromLTRB(0, 20, 3, 20), 
-    child: Row(
-      children: [
-        Flexible(
-          child: searchField(filterSearch,"Add user to group chat..."),
-        ),
-      ],
-    ),
-  ),
-),
-body:  Padding(
-          padding: const EdgeInsets.only(top: 5),
-          child: Column(
+        backgroundColor: HexColor(backgroundColor),
+        title: Padding(
+          padding: const EdgeInsets.fromLTRB(0, 20, 3, 20),
+          child: Row(
             children: [
-              Container(
-                padding: EdgeInsets.only(right: 300),
-                child:CircleAvatar(),
+              Flexible(
+                child: searchField(filterSearch, "Add user to group chat..."),
               ),
-              Expanded(
+            ],
+          ),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.only(top: 5),
+        child: Column(
+          children: [
+            if (chatRoomMemberIds.isNotEmpty)
+              Container(
+                height: 100, // Avatarların yüksekliği
                 child: ListView.builder(
-                  itemCount: filteredConvos.length,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: chatRoomMemberIds.length,
                   itemBuilder: (context, index) {
-                    final item = filteredConvos[index];
-                      return ListTile(
-                        title: Row(
+                    final member = chatRoomMemberIds[index];
+                    return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Column(
                           children: [
                             CircleAvatar(
-                backgroundColor: Colors.black,
-                backgroundImage: item["picture"] != null && item["picture"].isNotEmpty
-                    ? NetworkImage(item["picture"])
-                    : const AssetImage('assets/images/1024.png')
-                        as ImageProvider, // Casting for compatibility
-                radius: 25,
-              ),SizedBox(width: 10,),
-                            Text(item["name"] ?? "",
-                                style: const TextStyle(
-                                    color: Colors.black,
-                                    fontFamily: "Inter",
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold)),
+                             backgroundColor: Colors.black,
+                                    backgroundImage: member["picture"] != null &&
+                                            member["picture"].isNotEmpty
+                                        ? NetworkImage(member["picture"])
+                                        : const AssetImage(
+                                                'assets/images/1024.png')
+                                            as ImageProvider, // Casting for compatibility
+                                    radius: 30,
+                                  ),
+                            SizedBox(height: 8,),
+                            Text(
+                              member["name"],
+                              style: const TextStyle(
+                                fontFamily: "Inter",
+                                fontSize: 14,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ],
-                        ),
-                        contentPadding: const EdgeInsets.all(14),
-                        tileColor: HexColor(backgroundColor),
-                        onTap: () {
-                          chatRoomMemberIds.add(item["id"]);
-                        },
-                      );
-                    
+                        ));
                   },
                 ),
               ),
-            ],
-          )),
+            Expanded(
+              child: ListView.builder(
+                itemCount: filteredConvos.length,
+                itemBuilder: (context, index) {
+                  final item = filteredConvos[index];
+                  return ListTile(
+                    contentPadding: const EdgeInsets.all(14),
+                    tileColor: HexColor(backgroundColor),
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.black,
+                      backgroundImage:
+                          item["picture"] != null && item["picture"].isNotEmpty
+                              ? NetworkImage(item["picture"])
+                              : const AssetImage('assets/images/1024.png')
+                                  as ImageProvider,
+                      radius: 25,
+                    ),
+                    title: Text(
+                      item["name"] ?? "",
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontFamily: "Inter",
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onTap: () {
+                      if (!chatRoomMemberIds.contains(item)) {
+                        setState(() {
+                          chatRoomMemberIds.add(item);
+                        });
+                      }
+                    },
+                  );
+                },
+              ),
+            ),
+            ElevatedButton(
+                    onPressed: (){
+                      chatRoomMemberIds.clear();
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: HexColor(buttonBackground),
+                        foregroundColor: HexColor(buttoncolor),
+                        minimumSize: const Size(200, 63),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20))),
+                    child: const Text(
+                      "Create a new group chat!",
+                      style: TextStyle(fontFamily: "Inter", fontSize: 20),
+                    )),
+                const SizedBox(
+                  height: 80,
+                ),
+          ],
+          
+        ),
+      ),
     );
   }
-
 }
