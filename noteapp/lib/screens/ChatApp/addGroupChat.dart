@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
+import 'package:noteapp/screens/ChatApp/setGroupChat.dart';
 import 'package:noteapp/utils/services/chats/chat_services.dart';
 import 'package:noteapp/widgets/widgets.dart';
 
@@ -79,17 +80,37 @@ class _addGroupChatState extends State<addGroupChat> {
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Column(
                           children: [
-                            CircleAvatar(
-                             backgroundColor: Colors.black,
-                                    backgroundImage: member["picture"] != null &&
-                                            member["picture"].isNotEmpty
-                                        ? NetworkImage(member["picture"])
-                                        : const AssetImage(
-                                                'assets/images/1024.png')
-                                            as ImageProvider, // Casting for compatibility
-                                    radius: 30,
+                            Stack(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: Colors.black,
+                                  backgroundImage: member["picture"] != null &&
+                                          member["picture"].isNotEmpty
+                                      ? NetworkImage(member["picture"])
+                                      : const AssetImage(
+                                              'assets/images/1024.png')
+                                          as ImageProvider,
+                                  radius: 30,
+                                ),
+                                Positioned(
+                                  top: -19,
+                                  right: -18,
+                                  child: IconButton(
+                                    icon: Icon(Icons.close,
+                                        size: 18,
+                                        color: HexColor(buttonBackground)),
+                                    onPressed: () {
+                                      setState(() {
+                                        chatRoomMemberIds.remove(member);
+                                      });
+                                    },
                                   ),
-                            SizedBox(height: 8,),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 8,
+                            ),
                             Text(
                               member["name"],
                               style: const TextStyle(
@@ -141,24 +162,25 @@ class _addGroupChatState extends State<addGroupChat> {
               ),
             ),
             ElevatedButton(
-                    onPressed: (){
-                      chatRoomMemberIds.clear();
-                    },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: HexColor(buttonBackground),
-                        foregroundColor: HexColor(buttoncolor),
-                        minimumSize: const Size(200, 63),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20))),
-                    child: const Text(
-                      "Create a new group chat!",
-                      style: TextStyle(fontFamily: "Inter", fontSize: 20),
-                    )),
-                const SizedBox(
-                  height: 80,
-                ),
+                onPressed: () {
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => Setgroupchat(chatRoomMemberIds: chatRoomMemberIds
+                      )));
+                },
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: HexColor(buttonBackground),
+                    foregroundColor: HexColor(buttoncolor),
+                    minimumSize: const Size(200, 63),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20))),
+                child: const Text(
+                  "Create a new group chat",
+                  style: TextStyle(fontFamily: "Inter", fontSize: 20),
+                )),
+            const SizedBox(
+              height: 80,
+            ),
           ],
-          
         ),
       ),
     );
