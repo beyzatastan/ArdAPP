@@ -28,8 +28,6 @@ Future<void> sendMessage(String receiverId, message) async {
 
   // Receivers koleksiyonuna veri ekleme
   await _firestore.collection("Receivers").doc(receiverId).set(receiverData);
-
-  
     Messagemodel newMessage = Messagemodel(
         senderId: currentUserId,
         senderEmail: currentUserEmail!,
@@ -61,15 +59,13 @@ Future<void> sendMessage(String receiverId, message) async {
 
  Stream<List<Map<String, dynamic>>> getUsersWithChatHistory() {
   return _firestore.collection('Receivers').snapshots().asyncMap((snapshot) async {
-    // Kullanıcı ID'lerini toplama
     List<String> userIds = snapshot.docs.map((doc) {
-      return doc['receiverId'] as String; // receiverId'yi döndür
+      return doc['receiverId'] as String;
     }).toList();
 
-    // Kullanıcı bilgilerini almak için bir liste oluştur
     List<Map<String, dynamic>> users = [];
 
-    // Kullanıcı ID'lerini kullanarak `Users` koleksiyonundan bilgileri al
+
     for (String userId in userIds) {
       DocumentSnapshot userDoc = await _firestore.collection('Users').doc(userId).get();
       if (userDoc.exists) {
@@ -80,6 +76,60 @@ Future<void> sendMessage(String receiverId, message) async {
     return users;
   });
 }
+Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory() {
+  return _firestore.collection('Group_Chats').snapshots().asyncMap((snapshot) async {
+    List<String> groupIds = snapshot.docs.map((doc) => doc.id).toList();
+    List<Map<String, dynamic>> groups = [];
+
+    for (String groupId in groupIds) {
+      DocumentSnapshot groupDoc = await _firestore.collection('Group_Chats').doc(groupId).get();
+      if (groupDoc.exists) {
+        Map<String, dynamic> groupData = groupDoc.data() as Map<String, dynamic>;
+
+        QuerySnapshot membersSnapshot = await _firestore
+            .collection('Group_Chats')
+            .doc(groupId)
+            .collection('Members')
+            .get();
+
+        List<Map<String, dynamic>> members = membersSnapshot.docs.map((memberDoc) {
+          return memberDoc.data() as Map<String, dynamic>;
+        }).toList();
+
+        groups.add({
+          'groupId': groupId,
+          'groupData': groupData,
+          'members': members,
+        });
+      }
+    }
+    print(groups);  // Debug: Print the groups data to check
+    return groups;
+  });
+}
+
+Future<String?> getgroupLastMessage(String chatId) async {
+  try {
+    QuerySnapshot messagesSnapshot = await _firestore
+        .collection('Group_Chats')
+        .doc(chatId)
+        .collection('Messages')
+        .orderBy('timestamp', descending: true)
+        .limit(1)
+        .get();
+
+    if (messagesSnapshot.docs.isNotEmpty) {
+      var lastMessage = messagesSnapshot.docs.first.data() as Map<String, dynamic>;
+      return lastMessage['text'] as String?;
+    }
+    return null;
+  } catch (e) {
+    print("Error fetching last message: $e");
+    return null;
+  }
+}
+
+
 Future<String> getLastMessage(String chatId) async {
   try {
     final snapshot = await FirebaseFirestore.instance

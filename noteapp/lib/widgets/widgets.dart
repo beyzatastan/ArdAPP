@@ -107,3 +107,184 @@ Widget textFieldFull(TextEditingController controller){
     },
   );
 }
+
+/*
+  Widget _buildGroupList() {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: _chatServices.getGroupsWithChatHistory(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text("Error: ${snapshot.error}");
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.info_outline,
+                  size: 50,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "No groups found",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 5),
+                  child: const Text(
+                    "You can create a new group by using the add button",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+final groups = snapshot.data!;
+return ListView(
+  children: groups.map<Widget>((groupData) {
+    // groupData'ya erişim sağlayan doğru anahtarları kullanın
+    final groupInfo = groupData['groupData'] as Map<String, dynamic>;
+    final groupPicture = groupInfo['groupPicture'] ?? '';
+    final groupName = groupInfo['groupName'] ?? 'No Name';
+    final groupDesc = groupInfo['groupDesc'] ?? 'No Description';
+
+    return ListTile(
+      leading: groupPicture.isNotEmpty
+          ? SizedBox(
+              width: 50, // Genişliği sınırlayın
+              height: 50, // Yüksekliği sınırlayın
+              child:ClipOval(
+                child: Image.network(
+                groupPicture,
+                fit: BoxFit.cover, // Resmi kutuya sığdırmak için
+                errorBuilder: (context, error, stackTrace) {
+                  // Resim yüklenirken hata varsa burada göster
+                  return Icon(Icons.error);
+                },
+              ),
+              )
+            )
+          : Icon(Icons.group),
+      title: Text(groupName,style: TextStyle(fontFamily: "Inter"),),
+      subtitle: Text(groupDesc),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Groupconvoscreen(
+              groupId: groupData['groupId'],
+              groupName: groupName,
+              members: (groupData['members'] as List<Map<String, dynamic>>)
+                  .map((member) => member['memberId'] as String)
+                  .toList(),
+            ),
+          ),
+        );
+      },
+    );
+  }).toList(),
+);
+
+
+      },
+    );
+  }
+
+//build a list of users except current user
+  Widget _buildUserList() {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: _chatServices.getUsersWithChatHistory(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text("Error: ${snapshot.error}");
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: (MainAxisAlignment.center),
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.info_outline,
+                  size: 50,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "No users found",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 5),
+                  child: const Text(
+                    "You can start a new conversation by using the add button",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        final users = snapshot.data!;
+        return ListView(
+          children: users.map<Widget>((userData) {
+            if (userData["email"] != getCurrentUser()!.email) {
+              List<String> ids = [getCurrentUser()!.uid, userData["id"]];
+              ids.sort();
+              String chatRoomId = ids.join("_");
+              return FutureBuilder<String>(
+                future: _chatServices.getLastMessage(chatRoomId),
+                builder: (context, messageSnapshot) {
+                  if (!messageSnapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  return UserTile(
+                    text: userData["name"],
+                    profile: userData["picture"],
+                    chatId: chatRoomId,
+                    receiverId: userData["id"],
+                    lastMessage: messageSnapshot.data!,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Convosscreen(
+                            receiverName: userData["name"],
+                            receiverId: userData["id"],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            } else {
+              return Container();
+            }
+          }).toList(),
+        );
+      },
+    );
+  }
+*/

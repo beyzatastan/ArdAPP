@@ -1,13 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
-import 'package:noteapp/extensions/user_tile.dart';
-import 'package:noteapp/screens/ChatApp/convosScreen.dart';
 import 'package:noteapp/screens/ChatApp/searchScreen.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
 import 'package:noteapp/utils/services/chats/chat_services.dart';
 import 'package:noteapp/widgets/widgets.dart';
+import 'package:rxdart/rxdart.dart';
 
 class Chatscreen extends StatefulWidget {
   const Chatscreen({super.key});
@@ -17,14 +17,14 @@ class Chatscreen extends StatefulWidget {
 }
 
 class _ChatscreenState extends State<Chatscreen> {
-
   // Chat & Auth Services
   final ChatServices _chatServices = ChatServices();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  User? getCurrentUser (){
+  User? getCurrentUser() {
     return _firebaseAuth.currentUser;
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,10 +47,9 @@ class _ChatscreenState extends State<Chatscreen> {
             child: Column(children: [
               IconButton(
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (context) => Searchscreen(usersStream: _chatServices.getUsersStream())
-                  ));
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => Searchscreen(
+                          usersStream: _chatServices.getUsersStream())));
                 },
                 color: HexColor(buttonBackground),
                 icon: const Icon(
@@ -62,93 +61,166 @@ class _ChatscreenState extends State<Chatscreen> {
           )
         ],
       ),
-      body: _buildUserList()
+      body: _buildCombinedList(),
     );
-  }
-
-//build a list of users except current user
-Widget _buildUserList() {
+  }Widget _buildCombinedList() {
   return StreamBuilder<List<Map<String, dynamic>>>(
-    stream: _chatServices.getUsersWithChatHistory(),
+    stream: Rx.combineLatest2(
+      _chatServices.getGroupsWithChatHistory(),
+      _chatServices.getUsersWithChatHistory(),
+      (List<Map<String, dynamic>> groups, List<Map<String, dynamic>> users) {
+        List<Map<String, dynamic>> combinedList = [];
+
+        combinedList.addAll(groups.map((group) {
+          Timestamp timestamp = group['groupData']['createdAt'];
+          return {
+            'type': 'group',
+            'data': group,
+            'timestamp': timestamp.toDate()
+          };
+        }).toList());
+
+        combinedList.addAll(users.map((user) {
+          // Kullanıcılar için gerçek bir timestamp'e ihtiyaç var.
+          // Örneğin, kullanıcıların en son mesajlarının zamanını kullanabilirsiniz.
+          return {
+            'type': 'user',
+            'data': user,
+            'timestamp': DateTime.now() // Burayı güncel bir timestamp ile değiştirmelisiniz.
+          };
+        }).toList());
+
+        // Kullanıcıların timestamp'ını doğru bir değerle güncelleyiniz.
+        // Burada varsayılan olarak güncel zamanı kullanmak yerine,
+        // gerçek bir timestamp ile değiştirilmesi önerilir.
+
+        combinedList.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+        return combinedList;
+      }
+    ),
     builder: (context, snapshot) {
       if (snapshot.hasError) {
         return Text("Error: ${snapshot.error}");
       }
       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-  return Center(
-    child: Column(
-      mainAxisAlignment: (MainAxisAlignment.center),
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const Icon(
-          Icons.info_outline,
-          size: 50,
-          color: Colors.grey,
-        ),
-        const SizedBox(height: 10),
-        const Text(
-          "No users found",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 5),
-          child: const Text(
-            "You can start a new conversation by using the add button",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
-          ),
-        ),],
-    ),
-  );
-}
-      final users = snapshot.data!;
-       return ListView(
-          children: users.map<Widget>((userData) {
-            if (userData["email"] != getCurrentUser()!.email) {
-              List<String> ids = [getCurrentUser()!.uid, userData["id"]];
-              ids.sort();
-              String chatRoomId = ids.join("_");
+        return Center(child: Text("No data available"));
+      }
 
-              return FutureBuilder<String>(
-                future: _chatServices.getLastMessage(chatRoomId),
-                builder: (context, messageSnapshot) {
-                  if (!messageSnapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+      final combinedList = snapshot.data!;
+      return ListView(
+        children: combinedList.map<Widget>((item) {
+          if (item['type'] == 'group') {
+            final groupData = item['data'] as Map<String, dynamic>;
+            final groupPicture = groupData['groupData']['groupPicture'] ?? '';
+            final groupName = groupData['groupData']['groupName'] ?? 'No Name';
+            final groupDesc = groupData['groupData']['groupDesc'] ?? 'No Description';
 
-                  return UserTile(
-                    text: userData["name"],
-                    profile: userData["picture"],
-                    chatId: chatRoomId,
-                    receiverId: userData["id"],
-                    lastMessage: messageSnapshot.data!,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Convosscreen(
-                            receiverName: userData["name"],
-                            receiverId: userData["id"],
+            return Container(
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Row(
+                children: [
+                  groupPicture.isNotEmpty
+                      ? SizedBox(
+                          width: 60,
+                          height: 60,
+                          child: ClipOval(
+                            child: Image.network(
+                              groupPicture,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.error);
+                              },
+                            ),
+                          ),
+                        )
+                      : Icon(Icons.group, size: 50),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          groupName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
                           ),
                         ),
-                      );
-                    },
-                  );
-                },
-              );
-            } else {
-              return Container();
-            }
-          }).toList(),
-        );
-      },
-    );
-  }
+                        Text(
+                          groupDesc,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 15
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else if (item['type'] == 'user') {
+            final userData = item['data'] as Map<String, dynamic>;
+            final chatRoomId = [getCurrentUser()!.uid, userData["id"]].join("_");
+            return FutureBuilder<String>(
+              future: _chatServices.getLastMessage(chatRoomId),
+              builder: (context, messageSnapshot) {
+                if (!messageSnapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: Row(
+                    children: [
+                      userData["picture"] != null
+                          ? SizedBox(
+                              width: 60,
+                              height: 60,
+                              child: ClipOval(
+                                child: Image.network(
+                                  userData["picture"],
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(Icons.error);
+                                  },
+                                ),
+                              ),
+                            )
+                          : Icon(Icons.person, size: 50),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              userData["name"],
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                            Text(
+                              messageSnapshot.data!,
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 15
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          } else {
+            return Container();
+          }
+        }).toList(),
+      );
+    },
+  );
+}
 }
