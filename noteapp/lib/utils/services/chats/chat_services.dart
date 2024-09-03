@@ -55,27 +55,54 @@ Future<void> sendMessage(String receiverId, message) async {
         .collection("Messages")
         .orderBy("timestamp", descending: false)
         .snapshots();
-  }
-
- Stream<List<Map<String, dynamic>>> getUsersWithChatHistory() {
+  }Stream<List<Map<String, dynamic>>> getUsersWithChatHistory() {
   return _firestore.collection('Receivers').snapshots().asyncMap((snapshot) async {
     List<String> userIds = snapshot.docs.map((doc) {
       return doc['receiverId'] as String;
     }).toList();
 
-    List<Map<String, dynamic>> users = [];
-
+    List<Map<String, dynamic>> usersWithMessages = [];
 
     for (String userId in userIds) {
+      // Kullanıcı bilgilerini al
       DocumentSnapshot userDoc = await _firestore.collection('Users').doc(userId).get();
+      
       if (userDoc.exists) {
-        users.add(userDoc.data() as Map<String, dynamic>);
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+
+        // ChatRoomId oluşturulacak
+        List<String> ids = [userId, FirebaseAuth.instance.currentUser!.uid]; 
+        ids.sort();
+        String chatRoomId = ids.join("_");
+        
+        // Son mesajı almak için ilgili chat odasına bakın
+        QuerySnapshot messagesSnapshot = await _firestore
+            .collection('Chats')
+            .doc(chatRoomId)
+            .collection('Messages')
+            .orderBy('timestamp', descending: true)
+            .limit(1)
+            .get();
+
+        if (messagesSnapshot.docs.isNotEmpty) {
+          DocumentSnapshot lastMessageDoc = messagesSnapshot.docs.first;
+          Map<String, dynamic> lastMessageData = lastMessageDoc.data() as Map<String, dynamic>;
+          userData['message'] = lastMessageData['message'] ?? 'No message';
+          userData['timestamp'] = (lastMessageData['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
+        } else {
+          userData['message'] = 'No message';
+          userData['timestamp'] = DateTime.now();
+        }
+
+        usersWithMessages.add(userData);
       }
     }
 
-    return users;
+    return usersWithMessages;
   });
 }
+
+
 Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory() {
   return _firestore.collection('Group_Chats').snapshots().asyncMap((snapshot) async {
     List<String> groupIds = snapshot.docs.map((doc) => doc.id).toList();
@@ -107,26 +134,34 @@ Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory() {
     return groups;
   });
 }
+Future<String> _getLastGroupMessage(String groupId) async {
+  // Veritabanından son mesajı ve gönderici bilgilerini almak için uygun kod
+  // Örnek: Bir query yaparak son mesajı ve mesajı gönderen kullanıcıyı alabilirsiniz
+  final querySnapshot = await FirebaseFirestore.instance
+      .collection('Group_Chats')
+      .doc(groupId)
+      .collection('Messages')
+      .orderBy('timestamp', descending: true)
+      .limit(1)
+      .get();
 
-Future<String?> getgroupLastMessage(String chatId) async {
-  try {
-    QuerySnapshot messagesSnapshot = await _firestore
-        .collection('Group_Chats')
-        .doc(chatId)
-        .collection('Messages')
-        .orderBy('timestamp', descending: true)
-        .limit(1)
+  if (querySnapshot.docs.isNotEmpty) {
+    final lastMessageDoc = querySnapshot.docs.first;
+    final lastMessageData = lastMessageDoc.data();
+    final senderId = lastMessageData['senderId'];
+    final message = lastMessageData['message'];
+
+    // Gönderen kullanıcı bilgisini al
+    final userSnapshot = await FirebaseFirestore.instance
+        .collection('Users')
+        .doc(senderId)
         .get();
+    final userData = userSnapshot.data() as Map<String, dynamic>?;
+    final senderName = userData?['name'] ?? 'Unknown User';
 
-    if (messagesSnapshot.docs.isNotEmpty) {
-      var lastMessage = messagesSnapshot.docs.first.data() as Map<String, dynamic>;
-      return lastMessage['text'] as String?;
-    }
-    return null;
-  } catch (e) {
-    print("Error fetching last message: $e");
-    return null;
+    return '$senderName: $message';
   }
+  return 'No messages';
 }
 
 

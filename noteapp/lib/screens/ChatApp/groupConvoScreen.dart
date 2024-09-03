@@ -9,8 +9,9 @@ import 'package:noteapp/widgets/widgets.dart';
 class Groupconvoscreen extends StatefulWidget {
   final String groupName;
   final String groupId;
+  final String groupDesc;
   final List<String> members;
-  const Groupconvoscreen({super.key,required this.groupName,required this.members,required this.groupId});
+  const Groupconvoscreen({super.key,required this.groupName,required this.members,required this.groupId,required this.groupDesc});
 
   @override
   State<Groupconvoscreen> createState() => _GroupconvoscreenState();

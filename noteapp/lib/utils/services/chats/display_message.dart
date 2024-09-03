@@ -59,17 +59,17 @@ class _DisplayMessageState extends State<DisplayMessage> {
             QueryDocumentSnapshot qds = filteredMessages[index];
             Timestamp time = qds["timestamp"];
             DateTime dateTime = time.toDate();
-            bool isNotCurrentUser = qds["senderId"] == currentUserId;
+            bool isCurrentUser = qds["senderId"] == currentUserId;
             String messageContent = qds["message"];
 
             return Padding(
               padding: const EdgeInsets.fromLTRB(10, 2, 10, 2),
               child: Align(
-                alignment: isNotCurrentUser
+                alignment: isCurrentUser
                     ? Alignment.centerRight
                     : Alignment.centerLeft,
                 child: Column(
-                  crossAxisAlignment: isNotCurrentUser
+                  crossAxisAlignment: isCurrentUser
                       ? CrossAxisAlignment.end
                       : CrossAxisAlignment.start,
                   children: [
@@ -77,12 +77,12 @@ class _DisplayMessageState extends State<DisplayMessage> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isNotCurrentUser
+                        color: isCurrentUser
                             ? HexColor(buttonBackground)
                             : HexColor(search),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: _buildMessageWidget(messageContent,isNotCurrentUser),
+                      child: _buildMessageWidget(messageContent,isCurrentUser),
                     ),
                     const SizedBox(height: 2),
                     Text(

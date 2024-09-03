@@ -175,6 +175,7 @@ class _SetgroupchatState extends State<Setgroupchat> {
                         groupName: groupName.text,
                         members: memberIds,
                         groupId: groupId,
+                        groupDesc: groupDesc.text,
                       ),
                     ),
                     (Route<dynamic> route) => false,

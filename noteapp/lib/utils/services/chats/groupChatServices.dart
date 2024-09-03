@@ -13,7 +13,7 @@ Future<void> sendMessagetoGroup(String groupId, String message) async {
   final String? currentUserEmail = _auth.currentUser!.email;
   final Timestamp timestamp = Timestamp.now();
 
-  // Grup mesajını ekleyin
+ 
   groupMessageModel newMessage = groupMessageModel(
     senderId: currentUserId,
     senderEmail: currentUserEmail!,
@@ -44,14 +44,18 @@ static Future<List<Map<String, dynamic>>> getMemberDetails(List<String> memberId
 
   return memberDetails;
 }
+  // Kullanıcı bilgilerini alma
+  Future<DocumentSnapshot> getUserInfo(String userId) async {
+    return await _firestore.collection('Users').doc(userId).get();
+  }
 
-
-Stream<QuerySnapshot> getGroupMessages(String groupId) {
-  return _firestore
-      .collection("Group_Chats")
-      .doc(groupId)
-      .collection("Messages")
-      .orderBy("timestamp", descending: false)
-      .snapshots();
-}
+  // Mesajları alma
+  Stream<QuerySnapshot> getGroupMessages(String groupId) {
+    return _firestore
+        .collection('Group_Chats')
+        .doc(groupId)
+        .collection('Messages')
+        .orderBy('timestamp', descending: false)
+        .snapshots();
+  }
 }

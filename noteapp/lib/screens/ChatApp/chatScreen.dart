@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
+import 'package:noteapp/screens/ChatApp/convosScreen.dart';
+import 'package:noteapp/screens/ChatApp/groupConvoScreen.dart';
 import 'package:noteapp/screens/ChatApp/searchScreen.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
 import 'package:noteapp/utils/services/chats/chat_services.dart';
@@ -63,59 +65,80 @@ class _ChatscreenState extends State<Chatscreen> {
       ),
       body: _buildCombinedList(),
     );
-  }Widget _buildCombinedList() {
-  return StreamBuilder<List<Map<String, dynamic>>>(
-    stream: Rx.combineLatest2(
-      _chatServices.getGroupsWithChatHistory(),
-      _chatServices.getUsersWithChatHistory(),
-      (List<Map<String, dynamic>> groups, List<Map<String, dynamic>> users) {
-        List<Map<String, dynamic>> combinedList = [];
+  }
 
-        combinedList.addAll(groups.map((group) {
-          Timestamp timestamp = group['groupData']['createdAt'];
-          return {
-            'type': 'group',
-            'data': group,
-            'timestamp': timestamp.toDate()
-          };
-        }).toList());
+  Widget _buildCombinedList() {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+        stream: Rx.combineLatest2(_chatServices.getGroupsWithChatHistory(),
+            _chatServices.getUsersWithChatHistory(),
+            (List<Map<String, dynamic>> groups,
+                List<Map<String, dynamic>> users) {
+          List<Map<String, dynamic>> combinedList = [];
 
-        combinedList.addAll(users.map((user) {
-          // Kullanıcılar için gerçek bir timestamp'e ihtiyaç var.
-          // Örneğin, kullanıcıların en son mesajlarının zamanını kullanabilirsiniz.
-          return {
-            'type': 'user',
-            'data': user,
-            'timestamp': DateTime.now() // Burayı güncel bir timestamp ile değiştirmelisiniz.
-          };
-        }).toList());
+          combinedList.addAll(groups.map((group) {
+            Timestamp timestamp = group['groupData']['createdAt'];
+            return {
+              'type': 'group',
+              'data': group,
+              'timestamp': timestamp
+            };
+          }).toList());
 
-        // Kullanıcıların timestamp'ını doğru bir değerle güncelleyiniz.
-        // Burada varsayılan olarak güncel zamanı kullanmak yerine,
-        // gerçek bir timestamp ile değiştirilmesi önerilir.
+          combinedList.addAll(users.map((user) {
+            
+            return {
+              'type': 'user',
+              'data': user,
+              'timestamp': Timestamp.now()
+            };
+          }).toList());
+          combinedList.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+          return combinedList;
+        }),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Text("Error: ${snapshot.error}");
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text("No data available"));
+          }
 
-        combinedList.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
-        return combinedList;
-      }
-    ),
-    builder: (context, snapshot) {
-      if (snapshot.hasError) {
-        return Text("Error: ${snapshot.error}");
-      }
-      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-        return Center(child: Text("No data available"));
-      }
+          final combinedList = snapshot.data!;
+          return ListView(
+            children: combinedList.map<Widget>((item) {
+              if (item['type'] == 'group') {
+                final groupData = item['data'] as Map<String, dynamic>;
+                final groupPicture =
+                    groupData['groupData']['groupPicture'] ?? '';
+                final groupName =
+                    groupData['groupData']['groupName'] ?? 'No Name';
+                final groupDesc =
+                    groupData['groupData']['groupDesc'] ?? 'No Description';
+                final groupId = groupData['groupData']['groupId'];
+                final List<Map<String, dynamic>> members = groupData["members"];
+                final List<String> memberIds = members
+          .map((member) => member['memberId'] as String)
+          .toList();
 
-      final combinedList = snapshot.data!;
-      return ListView(
-        children: combinedList.map<Widget>((item) {
-          if (item['type'] == 'group') {
-            final groupData = item['data'] as Map<String, dynamic>;
-            final groupPicture = groupData['groupData']['groupPicture'] ?? '';
-            final groupName = groupData['groupData']['groupName'] ?? 'No Name';
-            final groupDesc = groupData['groupData']['groupDesc'] ?? 'No Description';
+      return FutureBuilder<String>(
+        future: _getLastGroupMessage(groupId),
+        builder: (context, messageSnapshot) {
+          if (!messageSnapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-            return Container(
+          return InkWell(
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => Groupconvoscreen(
+                  groupId: groupId,
+                  groupName: groupName,
+                  members: memberIds,
+                  groupDesc: groupDesc,
+                ),
+              ));
+            },
+            child: Container(
               margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               child: Row(
                 children: [
@@ -147,80 +170,120 @@ class _ChatscreenState extends State<Chatscreen> {
                           ),
                         ),
                         Text(
-                          groupDesc,
+                          messageSnapshot.data!,
                           style: const TextStyle(
                             color: Colors.grey,
-                            fontSize: 15
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          } else if (item['type'] == 'user') {
-            final userData = item['data'] as Map<String, dynamic>;
-            final chatRoomId = [getCurrentUser()!.uid, userData["id"]].join("_");
-            return FutureBuilder<String>(
-              future: _chatServices.getLastMessage(chatRoomId),
-              builder: (context, messageSnapshot) {
-                if (!messageSnapshot.hasData) {
-                  return Center(child: CircularProgressIndicator());
-                }
-
-                return Container(
-                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                  child: Row(
-                    children: [
-                      userData["picture"] != null
-                          ? SizedBox(
-                              width: 60,
-                              height: 60,
-                              child: ClipOval(
-                                child: Image.network(
-                                  userData["picture"],
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Icon(Icons.error);
-                                  },
+                            fontSize: 15,),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            )
-                          : Icon(Icons.person, size: 50),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              userData["name"],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                              ),
-                            ),
-                            Text(
-                              messageSnapshot.data!,
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 15
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                            ],
+                          ),
+                        ));
+                  },
                 );
-              },
-            );
-          } else {
-            return Container();
-          }
-        }).toList(),
-      );
-    },
-  );
+              } else if (item['type'] == 'user') {
+                final userData = item['data'] as Map<String, dynamic>;
+                final List ids = [getCurrentUser()!.uid, userData["id"]];
+                ids.sort();
+                String chatRoomId = ids.join("_");
+                return FutureBuilder<String>(
+                  future: _chatServices.getLastMessage(chatRoomId),
+                  builder: (context, messageSnapshot) {
+                    if (!messageSnapshot.hasData) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                    return InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => Convosscreen(receiverName: userData["name"], receiverId: userData["id"],
+                             
+                            ),
+                          ));
+                        },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 16),
+                      child: Row(
+                        children: [
+                          userData["picture"] != null
+                              ? SizedBox(
+                                  width: 60,
+                                  height: 60,
+                                  child: ClipOval(
+                                    child: Image.network(
+                                      userData["picture"],
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Icon(Icons.error);
+                                      },
+                                    ),
+                                  ),
+                                )
+                              : Icon(Icons.person, size: 50),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  userData["name"],
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                                Text(
+                                  messageSnapshot.data!,
+                                  style: const TextStyle(
+                                      color: Colors.grey, fontSize: 15),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ));
+                  },
+                );
+              } else {
+                return Container();
+              }
+            }).toList(),
+          );
+        });
+  }
+
+ Future<String> _getLastGroupMessage(String groupId) async {
+  // Veritabanından son mesajı ve gönderici bilgilerini almak için uygun kod
+  // Örnek: Bir query yaparak son mesajı ve mesajı gönderen kullanıcıyı alabilirsiniz
+  final querySnapshot = await FirebaseFirestore.instance
+      .collection('Group_Chats')
+      .doc(groupId)
+      .collection('Messages')
+      .orderBy('timestamp', descending: true)
+      .limit(1)
+      .get();
+
+  if (querySnapshot.docs.isNotEmpty) {
+    final lastMessageDoc = querySnapshot.docs.first;
+    final lastMessageData = lastMessageDoc.data();
+    final senderId = lastMessageData['senderId'];
+    final message = lastMessageData['message'];
+
+    // Gönderen kullanıcı bilgisini al
+    final userSnapshot = await FirebaseFirestore.instance
+        .collection('Users')
+        .doc(senderId)
+        .get();
+    final userData = userSnapshot.data() as Map<String, dynamic>?;
+    final senderName = userData?['name'] ?? 'Unknown User';
+
+    return '$senderName: $message';
+  }
+  return 'No messages';
 }
+
 }

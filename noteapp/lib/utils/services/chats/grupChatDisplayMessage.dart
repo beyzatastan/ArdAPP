@@ -5,7 +5,6 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/utils/services/chats/groupChatServices.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 class GroupDisplayMessage extends StatefulWidget {
   final List<String> members;
   final String groupId;
@@ -24,7 +23,7 @@ class _DisplayMessageState extends State<GroupDisplayMessage> {
   final Groupchatservices groupchatservices = Groupchatservices();
   final ScrollController _scrollController = ScrollController();
 
-   @override
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
       stream: groupchatservices.getGroupMessages(widget.groupId),
@@ -36,13 +35,7 @@ class _DisplayMessageState extends State<GroupDisplayMessage> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-        final filteredMessages = snapshot.data!.docs.where((doc) {
-          final senderId = doc['senderId'];
-
-          // Mesajın göndericisi grup üyelerinden biri mi kontrol edin
-          return widget.members.contains(senderId);
-        }).toList();
+        final filteredMessages = snapshot.data?.docs ?? []; // Tüm mesajları al
 
         if (filteredMessages.isEmpty) {
           return const Center(child: Text("No messages available."));
@@ -59,42 +52,84 @@ class _DisplayMessageState extends State<GroupDisplayMessage> {
             final qds = filteredMessages[index];
             final Timestamp time = qds["timestamp"];
             final DateTime dateTime = time.toDate();
-            final bool isCurrentUser = qds["senderId"] == currentUserId;
-            final String messageContent = qds["message"];
+            final bool isCurrentUser = qds["senderId"] == FirebaseAuth.instance.currentUser?.uid;
+            final String messageContent = qds["message"] ?? "";
+            final String senderId = qds["senderId"] ?? "";
 
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(10, 2, 10, 2),
-              child: Align(
-                alignment: isCurrentUser
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                child: Column(
-                  crossAxisAlignment: isCurrentUser
-                      ? CrossAxisAlignment.end
-                      : CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isCurrentUser
-                            ? HexColor(buttonBackground)
-                            : HexColor(search),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: _buildMessageWidget(messageContent, isCurrentUser),
+            // Kullanıcı bilgilerini almak için FutureBuilder
+            return FutureBuilder<DocumentSnapshot>(
+              future: groupchatservices.getUserInfo(senderId),
+              builder: (context, userSnapshot) {
+                if (userSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (userSnapshot.hasError) {
+                  return Center(child: Text("Error: ${userSnapshot.error}"));
+                }
+
+                final userData = userSnapshot.data?.data() as Map<String, dynamic>? ?? {};
+                final String userName = userData['name'] ?? "Unknown User";
+                final String userProfilePic = userData['picture'] ?? "";
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                  child: Row(
+                    mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                  children: [ Column(
+                      crossAxisAlignment: isCurrentUser
+                          ? CrossAxisAlignment.end
+                          : CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (!isCurrentUser)
+                              CircleAvatar(
+                                backgroundImage: userProfilePic.isNotEmpty
+                                    ? NetworkImage(userProfilePic)
+                                    : null,
+                                radius: 15,
+                              ),
+                            const SizedBox(width: 8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (!isCurrentUser)
+                                  Text(
+                                    userName,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: isCurrentUser
+                                        ? HexColor(buttonBackground)
+                                        : HexColor(search),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: _buildMessageWidget(messageContent, isCurrentUser),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          "${dateTime.hour}:${dateTime.minute}",
+                          style: TextStyle(
+                            color: HexColor(noteColor),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      "${dateTime.hour}:${dateTime.minute}",
-                      style: TextStyle(
-                        color: HexColor(noteColor),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                  ]),
+                );
+              },
             );
           },
         );
