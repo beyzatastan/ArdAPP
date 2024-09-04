@@ -42,7 +42,8 @@ class _ChatscreenState extends State<Chatscreen> {
                   fontFamily: "Inter",
                   fontSize: 40,
                   fontWeight: FontWeight.bold),
-            )),
+            )
+            ),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -69,10 +70,11 @@ class _ChatscreenState extends State<Chatscreen> {
 
   Widget _buildCombinedList() {
     return StreamBuilder<List<Map<String, dynamic>>>(
-        stream: Rx.combineLatest2(_chatServices.getGroupsWithChatHistory(_firebaseAuth.currentUser!.uid),
-            _chatServices.getUsersWithLastMessagesStream(_firebaseAuth.currentUser!.uid),
-            (List<Map<String, dynamic>> groups,
-                List<Map<String, dynamic>> users) {
+        stream: Rx.combineLatest2(_chatServices.getUsersWithLastMessagesStream(_firebaseAuth.currentUser!.uid),
+          _chatServices.getGroupsWithChatHistory(_firebaseAuth.currentUser!.uid),
+            
+            (List<Map<String, dynamic>> usersWithMessages,List<Map<String, dynamic>> groups,
+                ) {
           List<Map<String, dynamic>> combinedList = [];
 
           combinedList.addAll(groups.map((group) {
@@ -84,8 +86,7 @@ class _ChatscreenState extends State<Chatscreen> {
             };
           }).toList());
 
-          combinedList.addAll(users.map((userData) {
-            print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA $userData");
+          combinedList.addAll(usersWithMessages.map((userData) {
             Timestamp timestamp = userData['timestamp'];
             return {
               'type': 'user',
@@ -280,7 +281,7 @@ class _ChatscreenState extends State<Chatscreen> {
         .collection('Users')
         .doc(senderId)
         .get();
-    final userData = userSnapshot.data() as Map<String, dynamic>?;
+    final userData = userSnapshot.data();
     final senderName = userData?['name'] ?? 'Unknown User';
 
     return '$senderName: $message';

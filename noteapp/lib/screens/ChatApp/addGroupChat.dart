@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/screens/ChatApp/setGroupChat.dart';
-import 'package:noteapp/utils/services/chats/chat_services.dart';
 import 'package:noteapp/widgets/widgets.dart';
 
 class addGroupChat extends StatefulWidget {
@@ -16,7 +15,6 @@ class addGroupChat extends StatefulWidget {
 
 class _addGroupChatState extends State<addGroupChat> {
   TextEditingController searchController = TextEditingController();
-  final ChatServices _chatServices = ChatServices();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   List<Map<String, dynamic>> filteredConvos = [];
   List<Map<String, dynamic>> allConvos = [];

@@ -35,7 +35,18 @@ Future<void> sendMessage(String receiverId, message) async {
         .doc(chatRoomId)
         .collection("Messages")
         .add(newMessage.toMap());
+
+
+    final ChatRef = FirebaseFirestore.instance.collection("Chats").doc(chatRoomId);
+        await ChatRef.set({
+        "createdAt": Timestamp.now(),
+        "senderId":FirebaseAuth.instance.currentUser!.uid,
+        "receierId":receiverId
+        
+      });
+
   }
+
 
   Stream<QuerySnapshot> getMessages(String userId, otheUserId) {
     List<String> ids = [userId, otheUserId];
@@ -49,18 +60,27 @@ Future<void> sendMessage(String receiverId, message) async {
         .snapshots();
         
   }
-  
- Stream<List<Map<String, dynamic>>> getUsersWithLastMessagesStream(String currentUserId) {
-  return _firestore.collection('Chats').snapshots().asyncMap((chatRoomsSnapshot) async {
+Stream<List<Map<String, dynamic>>> getUsersWithLastMessagesStream(String currentUserId) {
+  return _firestore.collection("Chats").snapshots().asyncMap((chatRoomsSnapshot) async {
     List<Map<String, dynamic>> usersWithMessages = [];
+
+    print("Chat rooms snapshot: ${chatRoomsSnapshot.docs.length} documents found.");
+
+    if (chatRoomsSnapshot.docs.isEmpty) {
+      print("No chat rooms found.");
+      return usersWithMessages;
+    }
 
     for (var chatRoomDoc in chatRoomsSnapshot.docs) {
       String chatRoomId = chatRoomDoc.id;
       List<String> ids = chatRoomId.split("_");
 
       if (ids.contains(currentUserId)) {
+        print("Processing chat room ID: $chatRoomId");
+        
         Map<String, dynamic> userData = {};
 
+        // Other user ID
         String otherUserId = ids.firstWhere((id) => id != currentUserId);
         DocumentSnapshot otherUserDoc = await _firestore.collection('Users').doc(otherUserId).get();
 
@@ -68,8 +88,13 @@ Future<void> sendMessage(String receiverId, message) async {
           userData['id'] = otherUserId;
           userData['name'] = otherUserDoc.get('name') ?? 'Unknown';
           userData['picture'] = otherUserDoc.get('picture') ?? '';
+        } else {
+          userData['id'] = otherUserId;
+          userData['name'] = 'Unknown';
+          userData['picture'] = '';
         }
 
+        // Fetch the last message from the Messages collection
         QuerySnapshot messagesSnapshot = await _firestore
             .collection('Chats')
             .doc(chatRoomId)
@@ -82,20 +107,23 @@ Future<void> sendMessage(String receiverId, message) async {
           DocumentSnapshot lastMessageDoc = messagesSnapshot.docs.first;
           Map<String, dynamic> lastMessageData = lastMessageDoc.data() as Map<String, dynamic>;
           userData['message'] = lastMessageData['message'] ?? 'No message';
-          userData['timestamp'] = (lastMessageData['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
+          userData['timestamp'] = (lastMessageData['timestamp'] as Timestamp?);
+      
         } else {
           userData['message'] = 'No message';
-          userData['timestamp'] = DateTime.now();
         }
 
         usersWithMessages.add(userData);
       }
     }
 
+    print("Users with messages: $usersWithMessages");
     return usersWithMessages;
+  }).handleError((error) {
+    print("Error fetching data: $error");
+    return []; // Hata durumunda boş liste döndür
   });
 }
-
 
 
 Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory(String currentUserId) {
@@ -104,7 +132,7 @@ Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory(String currentUserId
 
     for (var groupDoc in snapshot.docs) {
       String groupId = groupDoc.id;
-      Map<String, dynamic> groupData = groupDoc.data() as Map<String, dynamic>;
+      Map<String, dynamic> groupData = groupDoc.data() ;
 
       // Kurucu kimliğini kontrol edelim
       String founderId = groupData['founder'];
@@ -161,35 +189,6 @@ Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory(String currentUserId
   });
 }
 
-Future<String> _getLastGroupMessage(String groupId) async {
-  // Veritabanından son mesajı ve gönderici bilgilerini almak için uygun kod
-  // Örnek: Bir query yaparak son mesajı ve mesajı gönderen kullanıcıyı alabilirsiniz
-  final querySnapshot = await FirebaseFirestore.instance
-      .collection('Group_Chats')
-      .doc(groupId)
-      .collection('Messages')
-      .orderBy('timestamp', descending: true)
-      .limit(1)
-      .get();
-
-  if (querySnapshot.docs.isNotEmpty) {
-    final lastMessageDoc = querySnapshot.docs.first;
-    final lastMessageData = lastMessageDoc.data();
-    final senderId = lastMessageData['senderId'];
-    final message = lastMessageData['message'];
-
-    // Gönderen kullanıcı bilgisini al
-    final userSnapshot = await FirebaseFirestore.instance
-        .collection('Users')
-        .doc(senderId)
-        .get();
-    final userData = userSnapshot.data() as Map<String, dynamic>?;
-    final senderName = userData?['name'] ?? 'Unknown User';
-
-    return '$senderName: $message';
-  }
-  return 'No messages';
-}
 
 
 Future<String> getLastMessage(String chatId) async {
