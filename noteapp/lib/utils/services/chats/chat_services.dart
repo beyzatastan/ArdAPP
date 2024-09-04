@@ -125,7 +125,6 @@ Stream<List<Map<String, dynamic>>> getUsersWithLastMessagesStream(String current
   });
 }
 
-
 Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory(String currentUserId) {
   return _firestore.collection('Group_Chats').snapshots().asyncMap((snapshot) async {
     List<Map<String, dynamic>> groups = [];
@@ -164,7 +163,6 @@ Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory(String currentUserId
             .get();
 
         if (memberDoc.exists) {
-          // Kullanıcı üye ise grubu ekle
           QuerySnapshot membersSnapshot = await _firestore
               .collection('Group_Chats')
               .doc(groupId)
@@ -175,17 +173,36 @@ Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory(String currentUserId
             return memberDoc.data() as Map<String, dynamic>;
           }).toList();
 
-          groups.add({
-            'groupId': groupId,
-            'groupData': groupData,
-            'members': members,
-          });
+        
         }
+
       }
+
+         QuerySnapshot messagesSnapshot = await _firestore
+            .collection('Group_Chats')
+            .doc(groupId)
+            .collection('Messages')
+            .orderBy('timestamp', descending: true)
+            .limit(1)
+            .get();
+
+        if (messagesSnapshot.docs.isNotEmpty) {
+          DocumentSnapshot lastMessageDoc = messagesSnapshot.docs.first;
+          Map<String, dynamic> lastMessageData = lastMessageDoc.data() as Map<String, dynamic>;
+          groupData['message'] = lastMessageData['message'] ?? 'No message';
+          groupData['timestamp'] = (lastMessageData['timestamp'] as Timestamp?);
+      
+        } else {
+          groupData['message'] = 'No message';
+          groupData['timestamp'] = (groupData["createdAt"]);
+        }
     }
 
-    print(groups);  
+    print(groups);
     return groups;
+  }).handleError((error) {
+    print("Error fetching data: $error");
+    return []; // Hata durumunda boş liste döndür
   });
 }
 

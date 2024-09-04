@@ -78,7 +78,7 @@ class _ChatscreenState extends State<Chatscreen> {
           List<Map<String, dynamic>> combinedList = [];
 
           combinedList.addAll(groups.map((group) {
-            Timestamp timestamp = group['groupData']['createdAt'];
+            Timestamp timestamp = group['groupData']['timestamp'];
             return {
               'type': 'group',
               'data': group,
