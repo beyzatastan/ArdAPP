@@ -46,6 +46,7 @@ class _DisplayMessageState extends State<DisplayMessage> {
 
         if (filteredMessages.isEmpty) {
           return const Center(child: Text("No messages available."));
+          
         }
 
         WidgetsBinding.instance.addPostFrameCallback((_) {

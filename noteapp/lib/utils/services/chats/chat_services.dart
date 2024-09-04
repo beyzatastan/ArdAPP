@@ -19,15 +19,7 @@ Future<void> sendMessage(String receiverId, message) async {
     final String currentUserId = _auth.currentUser!.uid;
     final String? currentUserEmail = _auth.currentUser!.email;
     final Timestamp timestamp = Timestamp.now();
-
-    // Belgeye receiverId eklemek için yapılandırılmış bir Map oluştur
-  Map<String, dynamic> receiverData = {
-    'receiverId': receiverId,
-    'timestamp': timestamp, // Opsiyonel, belgenin oluşturulma zamanını tutmak isteyebilirsiniz
-  };
-
-  // Receivers koleksiyonuna veri ekleme
-  await _firestore.collection("Receivers").doc(receiverId).set(receiverData);
+      
     Messagemodel newMessage = Messagemodel(
         senderId: currentUserId,
         senderEmail: currentUserEmail!,
@@ -55,27 +47,29 @@ Future<void> sendMessage(String receiverId, message) async {
         .collection("Messages")
         .orderBy("timestamp", descending: false)
         .snapshots();
-  }Stream<List<Map<String, dynamic>>> getUsersWithChatHistory() {
-  return _firestore.collection('Receivers').snapshots().asyncMap((snapshot) async {
-    List<String> userIds = snapshot.docs.map((doc) {
-      return doc['receiverId'] as String;
-    }).toList();
-
+        
+  }
+  
+ Stream<List<Map<String, dynamic>>> getUsersWithLastMessagesStream(String currentUserId) {
+  return _firestore.collection('Chats').snapshots().asyncMap((chatRoomsSnapshot) async {
     List<Map<String, dynamic>> usersWithMessages = [];
 
-    for (String userId in userIds) {
-      // Kullanıcı bilgilerini al
-      DocumentSnapshot userDoc = await _firestore.collection('Users').doc(userId).get();
-      
-      if (userDoc.exists) {
-        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+    for (var chatRoomDoc in chatRoomsSnapshot.docs) {
+      String chatRoomId = chatRoomDoc.id;
+      List<String> ids = chatRoomId.split("_");
 
-        // ChatRoomId oluşturulacak
-        List<String> ids = [userId, FirebaseAuth.instance.currentUser!.uid]; 
-        ids.sort();
-        String chatRoomId = ids.join("_");
-        
-        // Son mesajı almak için ilgili chat odasına bakın
+      if (ids.contains(currentUserId)) {
+        Map<String, dynamic> userData = {};
+
+        String otherUserId = ids.firstWhere((id) => id != currentUserId);
+        DocumentSnapshot otherUserDoc = await _firestore.collection('Users').doc(otherUserId).get();
+
+        if (otherUserDoc.exists) {
+          userData['id'] = otherUserId;
+          userData['name'] = otherUserDoc.get('name') ?? 'Unknown';
+          userData['picture'] = otherUserDoc.get('picture') ?? '';
+        }
+
         QuerySnapshot messagesSnapshot = await _firestore
             .collection('Chats')
             .doc(chatRoomId)
@@ -103,16 +97,20 @@ Future<void> sendMessage(String receiverId, message) async {
 }
 
 
-Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory() {
+
+Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory(String currentUserId) {
   return _firestore.collection('Group_Chats').snapshots().asyncMap((snapshot) async {
-    List<String> groupIds = snapshot.docs.map((doc) => doc.id).toList();
     List<Map<String, dynamic>> groups = [];
 
-    for (String groupId in groupIds) {
-      DocumentSnapshot groupDoc = await _firestore.collection('Group_Chats').doc(groupId).get();
-      if (groupDoc.exists) {
-        Map<String, dynamic> groupData = groupDoc.data() as Map<String, dynamic>;
+    for (var groupDoc in snapshot.docs) {
+      String groupId = groupDoc.id;
+      Map<String, dynamic> groupData = groupDoc.data() as Map<String, dynamic>;
 
+      // Kurucu kimliğini kontrol edelim
+      String founderId = groupData['founder'];
+
+      if (founderId == currentUserId) {
+        // Kullanıcı kurucu ise grubu ekle
         QuerySnapshot membersSnapshot = await _firestore
             .collection('Group_Chats')
             .doc(groupId)
@@ -128,12 +126,41 @@ Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory() {
           'groupData': groupData,
           'members': members,
         });
+      } else {
+        // Kullanıcı kurucu değilse, üyelik durumunu kontrol edelim
+        DocumentSnapshot memberDoc = await _firestore
+            .collection('Group_Chats')
+            .doc(groupId)
+            .collection('Members')
+            .doc(currentUserId)
+            .get();
+
+        if (memberDoc.exists) {
+          // Kullanıcı üye ise grubu ekle
+          QuerySnapshot membersSnapshot = await _firestore
+              .collection('Group_Chats')
+              .doc(groupId)
+              .collection('Members')
+              .get();
+
+          List<Map<String, dynamic>> members = membersSnapshot.docs.map((memberDoc) {
+            return memberDoc.data() as Map<String, dynamic>;
+          }).toList();
+
+          groups.add({
+            'groupId': groupId,
+            'groupData': groupData,
+            'members': members,
+          });
+        }
       }
     }
-    print(groups);  // Debug: Print the groups data to check
+
+    print(groups);  
     return groups;
   });
 }
+
 Future<String> _getLastGroupMessage(String groupId) async {
   // Veritabanından son mesajı ve gönderici bilgilerini almak için uygun kod
   // Örnek: Bir query yaparak son mesajı ve mesajı gönderen kullanıcıyı alabilirsiniz

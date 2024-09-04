@@ -224,12 +224,13 @@ String? profilePictureUrl;
         "groupName":groupName.text,
         "groupId":groupId,
         "groupDesc":groupDesc.text,
-        "groupPicture":profilePictureUrl
+        "groupPicture":profilePictureUrl,
+        "founder":FirebaseAuth.instance.currentUser!.uid
         
       });
 
       for (var member in memberDetails) {
-        await groupChatRef.collection("Members").doc(member['memberId']).set({
+        await groupChatRef.collection("Members").doc(member['id']).set({
           "memberId": member['id'],
           "memberName": member["name"],
           "groupId":groupId

@@ -69,8 +69,8 @@ class _ChatscreenState extends State<Chatscreen> {
 
   Widget _buildCombinedList() {
     return StreamBuilder<List<Map<String, dynamic>>>(
-        stream: Rx.combineLatest2(_chatServices.getGroupsWithChatHistory(),
-            _chatServices.getUsersWithChatHistory(),
+        stream: Rx.combineLatest2(_chatServices.getGroupsWithChatHistory(_firebaseAuth.currentUser!.uid),
+            _chatServices.getUsersWithLastMessagesStream(_firebaseAuth.currentUser!.uid),
             (List<Map<String, dynamic>> groups,
                 List<Map<String, dynamic>> users) {
           List<Map<String, dynamic>> combinedList = [];
@@ -84,12 +84,13 @@ class _ChatscreenState extends State<Chatscreen> {
             };
           }).toList());
 
-          combinedList.addAll(users.map((user) {
-            
+          combinedList.addAll(users.map((userData) {
+            print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA $userData");
+            Timestamp timestamp = userData['timestamp'];
             return {
               'type': 'user',
-              'data': user,
-              'timestamp': Timestamp.now()
+              'data': userData,
+              'timestamp': timestamp
             };
           }).toList());
           combinedList.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
@@ -200,7 +201,8 @@ class _ChatscreenState extends State<Chatscreen> {
                             builder: (context) => Convosscreen(receiverName: userData["name"], receiverId: userData["id"],
                              
                             ),
-                          ));
+                          )
+                          );
                         },
                     child: Container(
                       margin: const EdgeInsets.symmetric(

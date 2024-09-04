@@ -49,13 +49,41 @@ static Future<List<Map<String, dynamic>>> getMemberDetails(List<String> memberId
     return await _firestore.collection('Users').doc(userId).get();
   }
 
-  // Mesajları alma
-  Stream<QuerySnapshot> getGroupMessages(String groupId) {
-    return _firestore
-        .collection('Group_Chats')
-        .doc(groupId)
-        .collection('Messages')
-        .orderBy('timestamp', descending: false)
-        .snapshots();
+  Stream<QuerySnapshot> getGroupMessagesIfAuthorized(String groupId, String currentUserId) async* {
+  DocumentSnapshot groupDoc = await _firestore.collection('Group_Chats').doc(groupId).get();
+
+  if (groupDoc.exists) {
+  
+    String founderId = groupDoc['founder'];
+
+    if (founderId == currentUserId) {
+      yield* getGroupMessages(groupId);
+    } else {
+      DocumentSnapshot memberDoc = await _firestore
+          .collection('Group_Chats')
+          .doc(groupId)
+          .collection('Members')
+          .doc(currentUserId)
+          .get();
+
+      if (memberDoc.exists) {
+        yield* getGroupMessages(groupId);
+      } else {
+        yield* Stream.error('You are not authorized to view messages in this group.');
+      }
+    }
+  } else {
+    yield* Stream.error('Group does not exist.');
   }
+}
+
+Stream<QuerySnapshot> getGroupMessages(String groupId) {
+  return _firestore
+      .collection('Group_Chats')
+      .doc(groupId)
+      .collection('Messages')
+      .orderBy('timestamp', descending: false)
+      .snapshots();
+}
+
 }
