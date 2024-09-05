@@ -5,6 +5,7 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/utils/services/chats/groupChatServices.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 class GroupDisplayMessage extends StatefulWidget {
   final List<String> members;
   final String groupId;
@@ -26,7 +27,8 @@ class _DisplayMessageState extends State<GroupDisplayMessage> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: groupchatservices.getGroupMessagesIfAuthorized(widget.groupId,FirebaseAuth.instance.currentUser!.uid),
+      stream: groupchatservices.getGroupMessagesIfAuthorized(
+          widget.groupId, FirebaseAuth.instance.currentUser!.uid),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text("Error: ${snapshot.error}"));
@@ -52,7 +54,8 @@ class _DisplayMessageState extends State<GroupDisplayMessage> {
             final qds = filteredMessages[index];
             final Timestamp time = qds["timestamp"];
             final DateTime dateTime = time.toDate();
-            final bool isCurrentUser = qds["senderId"] == FirebaseAuth.instance.currentUser?.uid;
+            final bool isCurrentUser =
+                qds["senderId"] == FirebaseAuth.instance.currentUser?.uid;
             final String messageContent = qds["message"] ?? "";
             final String senderId = qds["senderId"] ?? "";
 
@@ -67,68 +70,74 @@ class _DisplayMessageState extends State<GroupDisplayMessage> {
                   return Center(child: Text("Error: ${userSnapshot.error}"));
                 }
 
-                final userData = userSnapshot.data?.data() as Map<String, dynamic>? ?? {};
+                final userData =
+                    userSnapshot.data?.data() as Map<String, dynamic>? ?? {};
                 final String userName = userData['name'] ?? "Unknown User";
                 final String userProfilePic = userData['picture'] ?? "";
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
                   //burası sayesinde mesajlar hizalandı
                   child: Row(
-                    mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-                  children: [ Column(
-                      crossAxisAlignment: isCurrentUser
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
+                      mainAxisAlignment: isCurrentUser
+                          ? MainAxisAlignment.end
+                          : MainAxisAlignment.start,
                       children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Column(
+                          crossAxisAlignment: isCurrentUser
+                              ? CrossAxisAlignment.end
+                              : CrossAxisAlignment.start,
                           children: [
-                            if (!isCurrentUser)
-                              CircleAvatar(
-                                backgroundImage: userProfilePic.isNotEmpty
-                                    ? NetworkImage(userProfilePic)
-                                    : null,
-                                radius: 15,
-                              ),
-                            const SizedBox(width: 8),
-                            Column(
+                            Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 if (!isCurrentUser)
-                                  Text(
-                                    userName,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
+                                  CircleAvatar(
+                                    backgroundImage: userProfilePic.isNotEmpty
+                                        ? NetworkImage(userProfilePic)
+                                        : null,
+                                    radius: 15,
+                                  ),
+                                const SizedBox(width: 8),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (!isCurrentUser)
+                                      Text(
+                                        userName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: isCurrentUser
+                                            ? HexColor(buttonBackground)
+                                            : HexColor(search),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: _buildMessageWidget(
+                                          messageContent, isCurrentUser),
                                     ),
-                                  ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: isCurrentUser
-                                        ? HexColor(buttonBackground)
-                                        : HexColor(search),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: _buildMessageWidget(messageContent, isCurrentUser),
+                                  ],
                                 ),
                               ],
                             ),
+                            const SizedBox(height: 2),
+                            Text(
+                              "${dateTime.hour}:${dateTime.minute}",
+                              style: TextStyle(
+                                color: HexColor(noteColor),
+                                fontSize: 12,
+                              ),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          "${dateTime.hour}:${dateTime.minute}",
-                          style: TextStyle(
-                            color: HexColor(noteColor),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ]),
+                      ]),
                 );
               },
             );
@@ -139,10 +148,8 @@ class _DisplayMessageState extends State<GroupDisplayMessage> {
   }
 
   Widget _buildMessageWidget(String message, bool isNotCurrentUser) {
-    final urlPattern = RegExp(
-        r'(http|https):\/\/([\w.]+\/?)\S*',
-        caseSensitive: false,
-        multiLine: false);
+    final urlPattern = RegExp(r'(http|https):\/\/([\w.]+\/?)\S*',
+        caseSensitive: false, multiLine: false);
 
     if (urlPattern.hasMatch(message)) {
       final match = urlPattern.firstMatch(message);
@@ -167,9 +174,7 @@ class _DisplayMessageState extends State<GroupDisplayMessage> {
         message,
         style: TextStyle(
           fontFamily: "Inter",
-          color: isNotCurrentUser 
-                      ? Colors.white
-                      : Colors.black,
+          color: isNotCurrentUser ? Colors.white : Colors.black,
           fontSize: 15,
         ),
       );

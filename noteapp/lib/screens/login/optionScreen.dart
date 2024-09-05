@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
@@ -79,7 +80,7 @@ class _OptionscreenState extends State<Optionscreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.newspaper,
+                       CupertinoIcons.news,
                         size: 60,
                       ),
                       const SizedBox(height: 20), // Space between icon and text
@@ -108,7 +109,7 @@ class _OptionscreenState extends State<Optionscreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.chat,
+                        CupertinoIcons.chat_bubble_text,
                         size: 60,
                       ),
                       const SizedBox(height: 20), // Space between icon and text
@@ -140,7 +141,7 @@ class _OptionscreenState extends State<Optionscreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(
-                        Icons.edit_note_sharp,
+                        CupertinoIcons.pencil_ellipsis_rectangle,
                         size: 65,
                       ),
                       const SizedBox(height: 20),

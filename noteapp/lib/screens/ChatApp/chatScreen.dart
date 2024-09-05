@@ -102,7 +102,38 @@ class _ChatscreenState extends State<Chatscreen> {
             return Text("Error: ${snapshot.error}");
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text("No data available"));
+            return Center(
+    child: Column(
+      mainAxisAlignment: (MainAxisAlignment.center),
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Icon(
+          Icons.info_outline,
+          size: 50,
+          color: Colors.grey,
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          "No users found",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 5),
+          child: const Text(
+            "You can start a new conversation by using the add button",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey,
+            ),
+          ),
+        ),],
+    ),
+  );
           }
 
           final combinedList = snapshot.data!;

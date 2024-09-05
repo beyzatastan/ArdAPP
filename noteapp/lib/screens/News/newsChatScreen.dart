@@ -119,7 +119,7 @@ class _NotechatscreenState extends State<Newschatscreen> {
 
   void sendMessage()async{
     if(messageCont.text.isNotEmpty){
-      await _chatServices.sendMessage(widget.receiverId,messageCont.text);
+      await _chatServices.sendMessage(widget.receiverId,messageCont.text,);
       messageCont.clear();
     }
   }

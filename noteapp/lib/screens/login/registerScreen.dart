@@ -25,8 +25,8 @@ class _RegisterscreenState extends State<Registerscreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   String? errorMessage;
-  File? _imageFile; // Seçilen resim dosyası
-  final ImagePicker _picker = ImagePicker(); // ImagePicker nesnesi
+  File? _imageFile; 
+  final ImagePicker _picker = ImagePicker(); 
 
   @override
   Widget build(BuildContext context) {
@@ -249,11 +249,8 @@ class _RegisterscreenState extends State<Registerscreen> {
       );
 
       final String userId = userCredential.user!.uid;
-
-      // E-posta doğrulama e-postası gönder
       await userCredential.user!.sendEmailVerification();
 
-      // Resim Firebase Storage'a yükleniyor
       String? profilePictureUrl;
       if (_imageFile != null) {
         final storageRef = FirebaseStorage.instance

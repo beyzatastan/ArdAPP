@@ -108,6 +108,54 @@ Widget textFieldFull(TextEditingController controller){
   );
 }
 
+  Future<void> _bottomMessageOptions(BuildContext context, dynamic item) {
+    return showModalBottomSheet(
+      context: context,
+      backgroundColor: HexColor(backgroundColor),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      builder: (context) {
+        return Container(
+          height: 250,
+          child: Column(
+            children: [
+              ListTile(
+                leading: Icon(Icons.photo),
+                title: Text('Photo'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Fotoğraf ekleme işlevini burada yapabilirsin
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.video_call),
+                title: Text('Video'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Video ekleme işlevini burada yapabilirsin
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.audiotrack),
+                title: Text('Audio'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Ses ekleme işlevini burada yapabilirsin
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.location_on),
+                title: Text('Location'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Konum ekleme işlevini burada yapabilirsin
+                },
+              ),
+            ],
+          ),
+        );
+  });}
 /*
   Widget _buildGroupList() {
     return StreamBuilder<List<Map<String, dynamic>>>(

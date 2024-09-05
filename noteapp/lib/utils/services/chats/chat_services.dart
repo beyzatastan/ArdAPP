@@ -15,18 +15,29 @@ class ChatServices {
       }).toList();
     });
   }
-Future<void> sendMessage(String receiverId, message) async {
+Future<void> sendMessage(String receiverId, message,[String? url]) async {
     final String currentUserId = _auth.currentUser!.uid;
     final String? currentUserEmail = _auth.currentUser!.email;
     final Timestamp timestamp = Timestamp.now();
-      
-    Messagemodel newMessage = Messagemodel(
+    Messagemodel newMessage ;
+    if(url==null){
+       newMessage = Messagemodel(
         senderId: currentUserId,
         senderEmail: currentUserEmail!,
         receiverId: receiverId,
         message: message,
         timestamp: timestamp,
-        messageType: "Text");
+        messageType: "Text",
+    );
+    }else newMessage = Messagemodel(
+      senderId: currentUserId,
+      senderEmail: currentUserEmail!,
+      receiverId: receiverId,
+      message: message,
+      timestamp: timestamp,
+      messageType: "Media",
+      mediaUrl: url
+  );
     List<String> ids = [currentUserId, receiverId];
     ids.sort();
     String chatRoomId = ids.join("_");
@@ -41,7 +52,7 @@ Future<void> sendMessage(String receiverId, message) async {
         await ChatRef.set({
         "createdAt": Timestamp.now(),
         "senderId":FirebaseAuth.instance.currentUser!.uid,
-        "receierId":receiverId
+        "receiverId":receiverId
         
       });
 
@@ -124,20 +135,19 @@ Stream<List<Map<String, dynamic>>> getUsersWithLastMessagesStream(String current
     return []; // Hata durumunda boş liste döndür
   });
 }
-
 Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory(String currentUserId) {
   return _firestore.collection('Group_Chats').snapshots().asyncMap((snapshot) async {
     List<Map<String, dynamic>> groups = [];
 
     for (var groupDoc in snapshot.docs) {
       String groupId = groupDoc.id;
-      Map<String, dynamic> groupData = groupDoc.data() ;
+      Map<String, dynamic> groupData = groupDoc.data();
 
       // Kurucu kimliğini kontrol edelim
       String founderId = groupData['founder'];
 
-      if (founderId == currentUserId) {
-        // Kullanıcı kurucu ise grubu ekle
+      if (founderId == currentUserId || await _isMemberOfGroup(groupId, currentUserId)) {
+        // Üye isek veya kurucu isek grubu ekle
         QuerySnapshot membersSnapshot = await _firestore
             .collection('Group_Chats')
             .doc(groupId)
@@ -148,37 +158,8 @@ Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory(String currentUserId
           return memberDoc.data() as Map<String, dynamic>;
         }).toList();
 
-        groups.add({
-          'groupId': groupId,
-          'groupData': groupData,
-          'members': members,
-        });
-      } else {
-        // Kullanıcı kurucu değilse, üyelik durumunu kontrol edelim
-        DocumentSnapshot memberDoc = await _firestore
-            .collection('Group_Chats')
-            .doc(groupId)
-            .collection('Members')
-            .doc(currentUserId)
-            .get();
-
-        if (memberDoc.exists) {
-          QuerySnapshot membersSnapshot = await _firestore
-              .collection('Group_Chats')
-              .doc(groupId)
-              .collection('Members')
-              .get();
-
-          List<Map<String, dynamic>> members = membersSnapshot.docs.map((memberDoc) {
-            return memberDoc.data() as Map<String, dynamic>;
-          }).toList();
-
-        
-        }
-
-      }
-
-         QuerySnapshot messagesSnapshot = await _firestore
+        // Son mesajı al
+        QuerySnapshot messagesSnapshot = await _firestore
             .collection('Group_Chats')
             .doc(groupId)
             .collection('Messages')
@@ -191,11 +172,18 @@ Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory(String currentUserId
           Map<String, dynamic> lastMessageData = lastMessageDoc.data() as Map<String, dynamic>;
           groupData['message'] = lastMessageData['message'] ?? 'No message';
           groupData['timestamp'] = (lastMessageData['timestamp'] as Timestamp?);
-      
         } else {
           groupData['message'] = 'No message';
-          groupData['timestamp'] = (groupData["createdAt"]);
+          groupData['timestamp'] = groupData["createdAt"];
         }
+
+        // Grubu listeye ekle
+        groups.add({
+          'groupId': groupId,
+          'groupData': groupData,
+          'members': members,
+        });
+      }
     }
 
     print(groups);
@@ -205,6 +193,18 @@ Stream<List<Map<String, dynamic>>> getGroupsWithChatHistory(String currentUserId
     return []; // Hata durumunda boş liste döndür
   });
 }
+
+// Kullanıcının grup üyesi olup olmadığını kontrol eden yardımcı yöntem
+Future<bool> _isMemberOfGroup(String groupId, String userId) async {
+  DocumentSnapshot memberDoc = await _firestore
+      .collection('Group_Chats')
+      .doc(groupId)
+      .collection('Members')
+      .doc(userId)
+      .get();
+  return memberDoc.exists;
+}
+
 
 
 
@@ -228,30 +228,4 @@ Future<String> getLastMessage(String chatId) async {
     return 'Error';
   }
 }
-/*
-Future<void> createGroupChat(String groupName) async{
- final user = _auth.currentUser;
- if(user==null){
-  throw Exception("try login");
- }
- final now = DateTime.now();
- final id =now.toString();
- final selectedMembers = ref.read(selectedGroupMembersProvider);
-
- final chatRooms = ChatRooms{
-  id:id,chatr
- }
-}
-List<String> _memberIds(User user,List<AppUser?> selectedMembers){
-  List<String> ids=[user.uid];
-  for(var member in selectedMembers){
-    if(member != null && !ids.contains(member.uid)){
-      ids.add(member.uid);
-    }
-  }
-  return{...ids}.toList();
-}
-Future<void> addChatRoomMember(ChatRoom chatroom,AppUser appuser) async{
-  
-} */
 }

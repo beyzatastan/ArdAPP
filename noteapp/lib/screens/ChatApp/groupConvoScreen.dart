@@ -92,6 +92,7 @@ class _GroupconvoscreenState extends State<Groupconvoscreen> {
                 TextButton(
                     onPressed: (){
                       groupchatservices.sendMessagetoGroup(widget.groupId, messageCont.text);
+                      messageCont.clear();
                     },
                     child: Text(
                       "Send",

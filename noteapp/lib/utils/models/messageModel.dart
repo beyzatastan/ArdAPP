@@ -7,6 +7,7 @@ class Messagemodel {
   final String message;
   final Timestamp timestamp;
   final String messageType;
+  final mediaUrl;
   
 
   Messagemodel( {
@@ -15,7 +16,8 @@ class Messagemodel {
     required this.senderEmail,
     required this.receiverId,
     required this.message,
-    required this.timestamp
+    required this.timestamp,
+    this.mediaUrl
   });
 
   //map e cevir 
@@ -30,7 +32,9 @@ class Messagemodel {
     };
   }
 
-}class NoteModel {
+}
+
+class NoteModel {
   final String userId;
   final String userName;
   final String noteTitle;
