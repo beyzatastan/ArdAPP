@@ -42,16 +42,18 @@ The app serves as a multifunctional platform where you can stay connected with f
 
 ### App Screenshots
 
-<img src="https://github.com/user-attachments/assets/bb5713a2-0c3e-4434-9c13-7ebb860d123d" width="300"/>
-
-<img src="https://github.com/user-attachments/assets/b7a5519a-f022-4692-b8a7-b02b0c1ddea9" width="300"/>
-
-<img src="https://github.com/user-attachments/assets/a283fede-73d3-4631-ac19-f7fdc5e57c2e" width="300"/>
-
 <img src="https://github.com/user-attachments/assets/6f45e68e-1800-4680-94c9-d492dc1fe52b" width="300"/>
 
 <img src="https://github.com/user-attachments/assets/3a761f1b-0cd3-4501-9182-d8b9465abd2a" width="300"/>
 
 <img src="https://github.com/user-attachments/assets/404ffcc4-c5fb-426e-b62f-da61085cba9a" width="300"/>
+
+[Video or additional assets link](https://github.com/user-attachments/assets/09470ca7-7f1c-4e04-880b-b922f225df46)
+
+<img src="https://github.com/user-attachments/assets/bb5713a2-0c3e-4434-9c13-7ebb860d123d" width="300"/>
+
+<img src="https://github.com/user-attachments/assets/b7a5519a-f022-4692-b8a7-b02b0c1ddea9" width="300"/>
+
+<img src="https://github.com/user-attachments/assets/a283fede-73d3-4631-ac19-f7fdc5e57c2e" width="300"/>
 
 [Video or additional assets link](https://github.com/user-attachments/assets/69ff37ed-a9b1-43ab-bc54-f714c77c6728)
