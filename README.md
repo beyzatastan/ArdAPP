@@ -54,6 +54,4 @@ The app serves as a multifunctional platform where you can stay connected with f
 
 <img src="https://github.com/user-attachments/assets/b7a5519a-f022-4692-b8a7-b02b0c1ddea9" width="300"/>
 
-<img src="https://github.com/user-attachments/assets/a283fede-73d3-4631-ac19-f7fdc5e57c2e" width="300"/>
-
 [Video or additional assets link](https://github.com/user-attachments/assets/69ff37ed-a9b1-43ab-bc54-f714c77c6728)
