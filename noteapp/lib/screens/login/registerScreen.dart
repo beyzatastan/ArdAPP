@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/screens/login/loginScreen.dart';
-import 'package:noteapp/screens/login/optionScreen.dart';
+import 'package:noteapp/screens/login/verifyScreen.dart';
 import 'package:noteapp/utils/auth.dart';
 
 class Registerscreen extends StatefulWidget {
@@ -22,7 +24,8 @@ class _RegisterscreenState extends State<Registerscreen> {
   final TextEditingController passwordCont = TextEditingController();
   final TextEditingController rePasswordCont = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-   String? errorMessage;
+
+  String? errorMessage;
   File? _imageFile; // Seçilen resim dosyası
   final ImagePicker _picker = ImagePicker(); // ImagePicker nesnesi
 
@@ -35,36 +38,10 @@ class _RegisterscreenState extends State<Registerscreen> {
           child: Padding(
             padding: const EdgeInsets.only(top: 100),
             child: Form(
-              key: _formKey, // Use the form key
+              key: _formKey, // Form key kullanımı
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                  width: 130,
-                  height: 130,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: HexColor(noteColor),
-                  ),
-                  child: _imageFile == null
-                      ? IconButton(
-                          onPressed: _pickImage,
-                          icon: Icon(
-                            Icons.add_a_photo,
-                            color: Colors.white,
-                            size: 40.0,
-                          ),
-                        )
-                      : ClipOval(
-                          child: Image.file(
-                            _imageFile!,
-                            fit: BoxFit.cover,
-                            width: 130,
-                            height: 130,
-                          ),
-                        ),
-                ),
-                SizedBox(height: 30,),
                   const Text(
                     "Register",
                     style: TextStyle(
@@ -81,7 +58,35 @@ class _RegisterscreenState extends State<Registerscreen> {
                       color: HexColor(noteColor),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
+                  Container(
+                    width: 130,
+                    height: 130,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: HexColor(noteColor),
+                    ),
+                    child: _imageFile == null
+                        ? IconButton(
+                            onPressed: _pickImage,
+                            icon: Icon(
+                              Icons.add_a_photo,
+                              color: Colors.white,
+                              size: 40.0,
+                            ),
+                          )
+                        : ClipOval(
+                            child: Image.file(
+                              _imageFile!,
+                              fit: BoxFit.cover,
+                              width: 130,
+                              height: 130,
+                            ),
+                          ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                     child: Column(
@@ -95,11 +100,10 @@ class _RegisterscreenState extends State<Registerscreen> {
                               hintStyle: TextStyle(color: HexColor(noteColor)),
                               enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: HexColor(noteColor),
-                                      width: 1)),
+                                      color: HexColor(noteColor), width: 1)),
                               focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: HexColor(buttonBackground)))),
+                                  borderSide: BorderSide(
+                                      color: HexColor(buttonBackground)))),
                         ),
                         const SizedBox(height: 20),
                         TextFormField(
@@ -111,11 +115,10 @@ class _RegisterscreenState extends State<Registerscreen> {
                               hintStyle: TextStyle(color: HexColor(noteColor)),
                               enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: HexColor(noteColor),
-                                      width: 1)),
+                                      color: HexColor(noteColor), width: 1)),
                               focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: HexColor(buttonBackground)))),
+                                  borderSide: BorderSide(
+                                      color: HexColor(buttonBackground)))),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Email cannot be empty';
@@ -136,11 +139,10 @@ class _RegisterscreenState extends State<Registerscreen> {
                               hintStyle: TextStyle(color: HexColor(noteColor)),
                               enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: HexColor(noteColor),
-                                      width: 1)),
+                                      color: HexColor(noteColor), width: 1)),
                               focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: HexColor(buttonBackground)))),
+                                  borderSide: BorderSide(
+                                      color: HexColor(buttonBackground)))),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Password cannot be empty';
@@ -161,11 +163,10 @@ class _RegisterscreenState extends State<Registerscreen> {
                               hintStyle: TextStyle(color: HexColor(noteColor)),
                               enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: HexColor(noteColor),
-                                      width: 1)),
+                                      color: HexColor(noteColor), width: 1)),
                               focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: HexColor(buttonBackground)))),
+                                  borderSide: BorderSide(
+                                      color: HexColor(buttonBackground)))),
                           validator: (value) {
                             if (value != passwordCont.text) {
                               return 'Passwords do not match';
@@ -178,9 +179,16 @@ class _RegisterscreenState extends State<Registerscreen> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          createUser();
+                          await createUser();
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  Verifyscreen(email: emailCont.text),
+                            ),
+                            (Route<dynamic> route) => false,
+                          );
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -194,7 +202,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                         style: TextStyle(fontFamily: "Inter", fontSize: 20),
                       )),
                   SizedBox(
-                    height: 200,
+                    height: 100,
                     child: Align(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -233,47 +241,69 @@ class _RegisterscreenState extends State<Registerscreen> {
   }
 
   Future<void> createUser() async {
-  try {
-    await Auth().signUpWitEmailandPassword(
-      emailCont.text,
-      passwordCont.text,
-      nameCont.text,
-    );
+    try {
+      final UserCredential userCredential =
+          await Auth().signUpWitEmailandPassword(
+        emailCont.text,
+        passwordCont.text,
+        nameCont.text,
+      );
 
-    // Navigate to Optionscreen after successful registration
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => const Optionscreen(),
-      ),
-      (Route<dynamic> route) => false,
-    );
-  } on FirebaseAuthException catch (e) {
-    String errorMessage;
-    switch (e.code) {
-      case 'email-already-in-use':
-        errorMessage = 'An account already exists for that email. Please use a different email or try logging in.';
-        break;
-      case 'weak-password':
-        errorMessage = 'The password provided is too weak. Please choose a stronger password.';
-        break;
-      case 'invalid-email':
-        errorMessage = 'The email address is badly formatted.';
-        break;
-      default:
-        errorMessage = 'An unexpected error occurred. Please try again.';
+      final String userId = userCredential.user!.uid;
+
+      // E-posta doğrulama e-postası gönder
+      await userCredential.user!.sendEmailVerification();
+
+      // Resim Firebase Storage'a yükleniyor
+      String? profilePictureUrl;
+      if (_imageFile != null) {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('profile_pictures')
+            .child(userId + '.jpg');
+
+        await storageRef.putFile(_imageFile!);
+        profilePictureUrl = await storageRef.getDownloadURL();
+      }
+
+      // Kullanıcı bilgilerini Firestore'a kaydet
+      await FirebaseFirestore.instance.collection('Users').doc(userId).set({
+        'email': emailCont.text,
+        "id": userId,
+        'name': nameCont.text,
+        "picture": profilePictureUrl
+      });
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'email-already-in-use':
+          errorMessage =
+              'An account already exists for that email. Please use a different email or try logging in.';
+          break;
+        case 'weak-password':
+          errorMessage =
+              'The password provided is too weak. Please choose a stronger password.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'The email address is badly formatted.';
+          break;
+        default:
+          errorMessage = 'An unexpected error occurred. Please try again.';
+      }
+      print('FirebaseAuthException: $errorMessage');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    } catch (e) {
+      print('Unexpected error: ${e.toString()}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('An unexpected error occurred. Please try again.')),
+      );
     }
-    print('FirebaseAuthException: $errorMessage');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(errorMessage)),
-    );
-  } catch (e) {
-    print('Unexpected error: ${e.toString()}');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('An unexpected error occurred. Please try again.')),
-    );
   }
-}
-Future<void> _pickImage() async {
+
+  Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
@@ -281,5 +311,4 @@ Future<void> _pickImage() async {
       });
     }
   }
-
 }

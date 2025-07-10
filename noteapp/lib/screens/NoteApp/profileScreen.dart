@@ -21,11 +21,36 @@ class _ProfilescreenState extends State<Profilescreen> {
   TextEditingController nameCont = TextEditingController();
   TextEditingController emailCont = TextEditingController();
   TextEditingController passwordCont = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final userId = FirebaseAuth.instance.currentUser!.uid;
   String? errorMessage;
-  File? _imageFile; // Seçilen resim dosyası
+  File? _imageFile; 
+  String? _profileImageUrl;
   final ImagePicker _picker = ImagePicker(); // ImagePicker nesnesi
+@override
+void initState() {
+  super.initState();
+  _loadUserData();
+}
+
+ Future<void> _loadUserData() async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final userDoc = await _firestore.collection('Users').doc(userId).get();
+      final userData = userDoc.data();
+      
+      if (userData != null) {
+        setState(() {
+          nameCont.text = userData['name'] ?? '';
+          emailCont.text = userData['email'] ?? '';
+          _profileImageUrl = userData['picture'];
+        });
+      }
+    } catch (e) {
+      print("Error loading user data: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +68,22 @@ class _ProfilescreenState extends State<Profilescreen> {
           style: TextStyle(
               fontFamily: "Inter", fontSize: 26, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          TextButton(
+                    onPressed: () {
+                      signOut();
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                            builder: (context) => const Loginscreen()),
+                        (Route<dynamic> route) => false,
+                      );
+                    },
+                    child: const Text(
+                      "Sign Out",
+                      style: TextStyle(
+                          color: Colors.red, fontFamily: "Inter", fontSize: 18),
+                    ))
+        ],
       ),
       backgroundColor: HexColor(backgroundColor),
       body: SingleChildScrollView(
@@ -58,7 +99,9 @@ class _ProfilescreenState extends State<Profilescreen> {
                     shape: BoxShape.circle,
                     color: HexColor(noteColor),
                   ),
-                  child: _imageFile == null
+                  child: GestureDetector(
+                    onTap: _pickImage,
+                    child: _profileImageUrl == null
                       ? IconButton(
                           onPressed: _pickImage,
                           icon: Icon(
@@ -68,13 +111,30 @@ class _ProfilescreenState extends State<Profilescreen> {
                           ),
                         )
                       : ClipOval(
-                          child: Image.file(
-                            _imageFile!,
+                          child: Image.network(
+                             _profileImageUrl ?? '',
                             fit: BoxFit.cover,
                             width: 130,
                             height: 130,
+                            loadingBuilder: (context, child, progress) {
+                if (progress == null) {
+                  return child;
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return Icon(
+                  Icons.error,
+                  color: Colors.red,
+                  size: 40.0,
+                );
+              },
                           ),
                         ),
+                  )
                 ),
                 SizedBox(height: 40,),
                 TextField(
@@ -105,22 +165,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                         borderSide: BorderSide(color: HexColor(noteColor)))),
                 ),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: passwordCont,
-                  decoration: InputDecoration(
-                    fillColor: Colors.white,
-                    filled: true,
-                    hintText: "Change Password",
-                    hintStyle: TextStyle(color: HexColor(noteColor)),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: HexColor(buttonBackground), width: 1)),
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: HexColor(noteColor)))),
-                ),
-                const SizedBox(
-                  height: 15,
-                ),
+                
                 ElevatedButton(
                     onPressed: () {
                       updateProfile();
@@ -138,20 +183,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                 const SizedBox(
                   height: 20,
                 ),
-                TextButton(
-                    onPressed: () {
-                      signOut();
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                            builder: (context) => const Loginscreen()),
-                        (Route<dynamic> route) => false,
-                      );
-                    },
-                    child: const Text(
-                      "Sign Out",
-                      style: TextStyle(
-                          color: Colors.red, fontFamily: "Inter", fontSize: 18),
-                    ))
+                
               ],
             ),
           ),
@@ -179,42 +211,46 @@ class _ProfilescreenState extends State<Profilescreen> {
     }
   }
 
-  Future<void> updateProfile() async {
+ Future<void> updateProfile() async {
   try {
-    // Profil fotoğrafını Firebase Storage'a yükle
+    String? profilePictureUrl;
+
     if (_imageFile != null) {
       final storageRef = FirebaseStorage.instance
           .ref()
           .child('profile_pictures')
           .child(userId + '.jpg');
+      
+      // Resmi yükle ve URL'yi al
       await storageRef.putFile(_imageFile!);
-      final profilePictureUrl = await storageRef.getDownloadURL();
-
-      // Profil verilerini Firestore'a güncelle
-      await FirebaseFirestore.instance
-          .collection("Users")
-          .doc(userId)
-          .update({
-        "name": nameCont.text,
-        "email": emailCont.text,
-        "profilePicture": profilePictureUrl
-      });
-    } else {
-      // Profil fotoğrafı yoksa sadece diğer bilgileri güncelle
-      await FirebaseFirestore.instance
-          .collection("Users")
-          .doc(userId)
-          .update({
-        "name": nameCont.text,
-        "email": emailCont.text,
-      });
+      profilePictureUrl = await storageRef.getDownloadURL();
     }
 
-    // Şifreyi güncelle
-    await FirebaseAuth.instance.currentUser!.updatePassword(passwordCont.text);
-    await FirebaseAuth.instance.currentUser!.verifyBeforeUpdateEmail(emailCont.text);
+    // Profil verilerini Firestore'da güncelle
+    final userUpdateData = {
+      "name": nameCont.text,
+      "email": emailCont.text,
+    };
 
-    // Kullanıcıyı yönlendirin
+    if (profilePictureUrl != null) {
+      userUpdateData["picture"] = profilePictureUrl;
+    }
+
+    await FirebaseFirestore.instance
+        .collection("Users")
+        .doc(userId)
+        .update(userUpdateData);
+
+    // Şifreyi ve e-posta adresini güncelle
+    if (passwordCont.text.isNotEmpty) {
+      await FirebaseAuth.instance.currentUser!.updatePassword(passwordCont.text);
+    }
+
+    if (emailCont.text.isNotEmpty && emailCont.text != FirebaseAuth.instance.currentUser!.email) {
+      await FirebaseAuth.instance.currentUser!.verifyBeforeUpdateEmail(emailCont.text);
+    }
+
+    // Kullanıcıyı yönlendirme
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const Notesscreen()),
       (Route<dynamic> route) => false,

@@ -5,7 +5,6 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/utils/services/chats/chat_services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class DisplayMessage extends StatefulWidget {
   const DisplayMessage(
@@ -17,9 +16,9 @@ class DisplayMessage extends StatefulWidget {
   State<DisplayMessage> createState() => _DisplayMessageState();
 }
 
+
 class _DisplayMessageState extends State<DisplayMessage> {
   final ChatServices _chatServices = ChatServices();
-  final WebViewController webViewController = WebViewController();
   final ScrollController _scrollController = ScrollController();
 
   @override

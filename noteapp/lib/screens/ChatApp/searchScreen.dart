@@ -110,12 +110,24 @@ class _SearchscreenState extends State<Searchscreen> {
                         )
                       ]),
                       child: ListTile(
-                        title: Text(item["name"] ?? "",
-                            style: const TextStyle(
-                                color: Colors.black,
-                                fontFamily: "Inter",
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold)),
+                        title: Row(
+                          children: [
+                            CircleAvatar(
+                backgroundColor: Colors.black,
+                backgroundImage: item["picture"] != null && item["picture"].isNotEmpty
+                    ? NetworkImage(item["picture"])
+                    : const AssetImage('assets/images/1024.png')
+                        as ImageProvider, // Casting for compatibility
+                radius: 25,
+              ),SizedBox(width: 10,),
+                            Text(item["name"] ?? "",
+                                style: const TextStyle(
+                                    color: Colors.black,
+                                    fontFamily: "Inter",
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold)),
+                          ],
+                        ),
                         contentPadding: const EdgeInsets.all(14),
                         tileColor: HexColor(backgroundColor),
                         onTap: () {

@@ -45,8 +45,8 @@ class _MyAppState extends State<MyApp> {
       future: _isSignedIn,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const MaterialApp(
-            home: Scaffold(
+          return MaterialApp(
+            home: const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
             debugShowCheckedModeBanner: false,
