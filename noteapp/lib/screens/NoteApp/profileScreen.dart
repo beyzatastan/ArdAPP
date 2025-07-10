@@ -9,6 +9,7 @@ import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/screens/NoteApp/notesScreen.dart';
 import 'package:noteapp/screens/login/loginScreen.dart';
 import 'package:noteapp/utils/auth.dart';
+import 'package:uuid/uuid.dart';
 
 class Profilescreen extends StatefulWidget {
   const Profilescreen({super.key});
@@ -27,7 +28,7 @@ class _ProfilescreenState extends State<Profilescreen> {
   String? errorMessage;
   File? _imageFile; 
   String? _profileImageUrl;
-  final ImagePicker _picker = ImagePicker(); // ImagePicker nesnesi
+  final ImagePicker _picker = ImagePicker(); 
 @override
 void initState() {
   super.initState();
@@ -195,8 +196,18 @@ void initState() {
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      setState(() {
+      setState(() async {
         _imageFile = File(pickedFile.path);
+        if (_imageFile != null) {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('profile_pictures')
+          .child(userId + '.jpg');
+      
+      await storageRef.putFile(_imageFile!);
+      _profileImageUrl = await storageRef.getDownloadURL();
+    }
+
       });
     }
   }

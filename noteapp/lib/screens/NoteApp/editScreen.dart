@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
 import 'package:noteapp/screens/NoteApp/notesScreen.dart';
+import 'package:noteapp/widgets/widgets.dart';
 
 class Editscreen extends StatefulWidget {
   const Editscreen({super.key, required this.notetitle, required this.notedesc,required this.noteId});
@@ -39,13 +40,7 @@ class _EditscreenState extends State<Editscreen> {
       backgroundColor: HexColor(backgroundColor),
       appBar: AppBar(
         backgroundColor: HexColor(backgroundColor),
-        leading: IconButton(onPressed: (){
-         //yığını da temizleyip gönderiyorum
-          Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const Notesscreen()),
-           (Route<dynamic> route) => false,
-             );
-        }, icon: Icon(Icons.arrow_back_ios)),
+       leading: backButton(context, Notesscreen()),
       ),
       body: SingleChildScrollView(
         child: Align(
@@ -56,50 +51,12 @@ class _EditscreenState extends State<Editscreen> {
               children: [
                 Container(
                   constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8), 
-                  child: TextField(
-                    controller: _titleController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: HexColor(buttonBackground),
-                          width: 1,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: HexColor(noteColor)),
-                      ),
-                    ),
-                    style: const TextStyle(
-                      fontFamily: "Inter",
-                      fontSize: 22,
-                      color: Colors.black,
-                    ),
-                  ),
+                  child: textFieldFull(_titleController)
                 ),
                 const SizedBox(height: 40),
                 Container(
                   constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8), // Adjust width as needed
-                  child: TextField(
-                    controller: _descController,
-                    keyboardType: TextInputType.multiline,
-                    maxLines: null,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: HexColor(buttonBackground),
-                          width: 1,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: HexColor(noteColor)),
-                      ),
-                    ),
-                    style: TextStyle(
-                      fontFamily: "Inter",
-                      fontSize: 16,
-                      color: HexColor(noteColor),
-                    ),
-                  ),
+                  child: textFieldFull(_descController)
                 ),
                 
                 Container(

@@ -1,45 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
-import 'package:noteapp/utils/services/chats/chat_services.dart';
-import 'package:noteapp/utils/services/chats/display_message.dart';
-import 'package:url_launcher/url_launcher.dart';
-class Newschatscreen extends StatefulWidget {
-  
-  final String receiverId;
-  final String newsUrl;
-  final String receiverName;
-  const Newschatscreen({super.key,required this.receiverId,
-  required this.receiverName,
-  required this.newsUrl});
+import 'package:noteapp/screens/ChatApp/chatScreen.dart';
+import 'package:noteapp/utils/services/chats/groupChatServices.dart';
+import 'package:noteapp/utils/services/chats/grupChatDisplayMessage.dart';
+import 'package:noteapp/widgets/widgets.dart';
+
+class Groupconvoscreen extends StatefulWidget {
+  final String groupName;
+  final String groupId;
+  final String groupDesc;
+  final List<String> members;
+  const Groupconvoscreen({super.key,required this.groupName,required this.members,required this.groupId,required this.groupDesc});
 
   @override
-  State<Newschatscreen> createState() => _NotechatscreenState();
+  State<Groupconvoscreen> createState() => _GroupconvoscreenState();
 }
 
-class _NotechatscreenState extends State<Newschatscreen> {
- final TextEditingController messageCont = TextEditingController();
-  final ChatServices _chatServices = ChatServices();
-
- @override
-  void initState() {
-    super.initState();
-    messageCont.text = "${widget.newsUrl}";
-  }
-
-
+class _GroupconvoscreenState extends State<Groupconvoscreen> {
+  TextEditingController messageCont =TextEditingController();
+  final Groupchatservices groupchatservices = Groupchatservices();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: HexColor(backgroundColor),
       appBar: AppBar(
+        leading: backButton(context, Chatscreen()),
         backgroundColor: HexColor(backgroundColor),
         title: Align(
           alignment: Alignment.centerLeft,
           child: Row(
             children: [
               Text(
-                widget.receiverName,
+                widget.groupName,
                 style: const TextStyle(
                     fontFamily: "Inter", fontSize: 25, color: Colors.black),
               ),
@@ -52,7 +45,7 @@ class _NotechatscreenState extends State<Newschatscreen> {
         children: [
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.75,
-            child: DisplayMessage(receivername: widget.receiverName,receiverId: widget.receiverId),
+            child: GroupDisplayMessage(members:widget.members,groupId:widget.groupId,)
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
@@ -60,7 +53,7 @@ class _NotechatscreenState extends State<Newschatscreen> {
               children: [
                 IconButton(
                   icon: Icon(Icons.add_circle,size: 26,color: HexColor(buttonBackground),),
-                  onPressed: () => _displayBottomSheet(context),
+                  onPressed: () {},
                 ),
                 Expanded(
                     child: TextFormField(
@@ -89,7 +82,6 @@ class _NotechatscreenState extends State<Newschatscreen> {
                       borderSide: BorderSide(
                         color: Colors.grey.withOpacity(0.5),
                         width: 1,
-                    
                       ),
                     ),
                   ),
@@ -98,7 +90,10 @@ class _NotechatscreenState extends State<Newschatscreen> {
                   },
                 )),
                 TextButton(
-                    onPressed: sendMessage,
+                    onPressed: (){
+                      groupchatservices.sendMessagetoGroup(widget.groupId, messageCont.text);
+                      messageCont.clear();
+                    },
                     child: Text(
                       "Send",
                       style: TextStyle(
@@ -109,47 +104,9 @@ class _NotechatscreenState extends State<Newschatscreen> {
                     ))
               ],
             ),
-          ), 
-          ],
-        ),
-      ),
-    );
-  }
-  
-
-  void sendMessage()async{
-    if(messageCont.text.isNotEmpty){
-      await _chatServices.sendMessage(widget.receiverId,messageCont.text,);
-      messageCont.clear();
-    }
-  }
-
-
-  Future<void> _launchURL(String url) async {
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    } else {
-      throw 'Could not launch $url';
-    }
-  }
-
-    void _displayBottomSheet(BuildContext context,) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: HexColor(backgroundColor),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-      ),
-      builder: (context) {
-        return Container(
-          height: 200,
-          child: Column(
-            children: [
-              
-            ],
-          ),
-        );
-      },
+          )
+        ],
+      )),
     );
   }
 }

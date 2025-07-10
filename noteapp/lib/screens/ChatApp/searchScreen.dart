@@ -1,9 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
+import 'package:noteapp/screens/ChatApp/addGroupChat.dart';
+import 'package:noteapp/screens/ChatApp/chatScreen.dart';
 import 'package:noteapp/screens/ChatApp/convosScreen.dart';
+import 'package:noteapp/utils/services/chats/chat_services.dart';
+import 'package:noteapp/widgets/widgets.dart';
 
 class Searchscreen extends StatefulWidget {
   final Stream<List<Map<String, dynamic>>> usersStream;
@@ -15,6 +20,8 @@ class Searchscreen extends StatefulWidget {
 
 class _SearchscreenState extends State<Searchscreen> {
   TextEditingController searchController = TextEditingController();
+    // Chat & Auth Services
+  final ChatServices _chatServices = ChatServices();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   List<Map<String, dynamic>> filteredConvos = [];
   List<Map<String, dynamic>> allConvos = [];
@@ -48,48 +55,29 @@ class _SearchscreenState extends State<Searchscreen> {
     return Scaffold(
       backgroundColor: HexColor(backgroundColor),
       appBar: AppBar(
-        backgroundColor: HexColor(backgroundColor),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          color: Colors.black,
-          onPressed: () {
-            Navigator.pop(context);
-          },
+  backgroundColor: HexColor(backgroundColor),
+  leading: backButton(context, Chatscreen()),
+  title: Padding(
+    padding: const EdgeInsets.fromLTRB(0, 20, 3, 20), 
+    child: Row(
+      children: [
+        Flexible(
+          child: searchField(filterSearch,"Search for users...")
         ),
-        actions: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(50, 8, 18, 10),
-              child: TextField(
-                decoration: InputDecoration(
-                  fillColor: Colors.white,
-                  filled: true,
-                  hintText: "Search for users...",
-                  enabled: true,
-                  contentPadding: const EdgeInsets.only(left: 15, bottom: 8),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: HexColor(noteColor),
-                      width: 1.5,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: Colors.grey.withOpacity(0.5),
-                      width: 1,
-                    ),
-                  ),
-                ),
-                onChanged: (value) {
-                  filterSearch(value);
-                },
-              ),
-            ),
+        IconButton(
+          onPressed: () {
+           Navigator.of(context).push(MaterialPageRoute(builder:(context) => addGroupChat(usersStream: _chatServices.getUsersStream(),)));
+          },
+          color: HexColor(buttonBackground),
+          icon: const Icon(
+            CupertinoIcons.group_solid,
+            size: 30,
           ),
-        ],
-      ),
+        ),
+      ],
+    ),
+  ),
+),
       body: Padding(
           padding: const EdgeInsets.only(top: 5),
           child: Column(
@@ -131,12 +119,12 @@ class _SearchscreenState extends State<Searchscreen> {
                         contentPadding: const EdgeInsets.all(14),
                         tileColor: HexColor(backgroundColor),
                         onTap: () {
-                          Navigator.of(context).push(
+                          Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
                                 builder: (context) => Convosscreen(
                                       receiverName: item["name"] ?? "",
                                       receiverId: item["id"] ?? "",
-                                    )),
+                                    )), (Route<dynamic> route) => false,
                           );
                         },
                       ),
@@ -148,4 +136,5 @@ class _SearchscreenState extends State<Searchscreen> {
           )),
     );
   }
+
 }

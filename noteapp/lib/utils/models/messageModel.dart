@@ -6,13 +6,18 @@ class Messagemodel {
   final String receiverId;
   final String message;
   final Timestamp timestamp;
+  final String messageType;
+  final mediaUrl;
+  
 
-  Messagemodel({
+  Messagemodel( {
+    required this.messageType,
     required this.senderId,
     required this.senderEmail,
     required this.receiverId,
     required this.message,
-    required this.timestamp
+    required this.timestamp,
+    this.mediaUrl
   });
 
   //map e cevir 
@@ -22,11 +27,14 @@ class Messagemodel {
       "senderEmail":senderEmail,
       "receiverId":receiverId,
       "message":message,
-      "timestamp":timestamp
+      "timestamp":timestamp,
+      "messageType":messageType
     };
   }
 
-}class NoteModel {
+}
+
+class NoteModel {
   final String userId;
   final String userName;
   final String noteTitle;
