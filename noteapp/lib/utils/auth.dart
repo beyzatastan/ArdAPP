@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Auth {
+
   final   FirebaseAuth  _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
 
@@ -9,7 +10,8 @@ User? get currentUser => _firebaseAuth.currentUser;
 
 Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
-Future<void> registerWithEmailAndPassword(
+//signUp
+Future<UserCredential> signUpWitEmailandPassword(
 String email,
  String password,
  String name) async {
@@ -18,20 +20,23 @@ String email,
         email: email,
         password: password,
       );
-        CollectionReference users =  _firebaseFirestore.collection('Users');
       User? user = result.user;
-
-
+      
+        CollectionReference users =  _firebaseFirestore.collection('Users');
+    
       await users.doc(user!.uid).set({
         'email': email,
         'id': user.uid,
         "name": name,
       });
+      return result;
       
     } on FirebaseAuthException catch (e) {
       throw Exception(e.code);
   }
  }
+
+
   //login
   Future<UserCredential> signIn({
     required String email,
@@ -40,7 +45,15 @@ String email,
             try{
    UserCredential userCredential =  await _firebaseAuth
    .signInWithEmailAndPassword(email: email, password: password);
+    
+/*save user info  if it doesnt already exist
+    _firebaseFirestore.collection("Users").doc(userCredential.user!.uid).set(
+      {
+        'email': email,
+        'id': userCredential.user!.uid,
+      });   */
    return userCredential;
+
       } on FirebaseAuthException  catch (e){
         throw Exception (e.code);
       }

@@ -2,10 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:noteapp/extensions/colors.dart';
-import 'package:noteapp/screens/NoteApp/forgotPassword.dart';
+import 'package:noteapp/screens/login/forgotPassword.dart';
 import 'package:noteapp/screens/login/optionScreen.dart';
 import 'package:noteapp/screens/login/registerScreen.dart';
-import 'package:noteapp/services/auth.dart';
+import 'package:noteapp/utils/auth.dart';
 
 class Loginscreen extends StatefulWidget {
   const Loginscreen({super.key});
